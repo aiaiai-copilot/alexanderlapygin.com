@@ -31,6 +31,7 @@ export interface Dictionary {
     services: string[];
     contactsHeading: string;
     emailAriaLabel: string;
+    telegramAriaLabel: string;
     githubAriaLabel: string;
     privacy: string;
     cookieSettings: string;
@@ -108,10 +109,8 @@ export interface Dictionary {
       projectType: string;
       budget: string;
       details: string;
-      consent: string;
-      consentLink: string;
       submit: string;
-      submitting: string;
+      submitOpened: string;
     };
     placeholders: {
       name: string;
@@ -123,20 +122,42 @@ export interface Dictionary {
     projectTypes: string[];
     budgets: string[];
     asideEmailHeading: string;
+    asideTelegramHeading: string;
     asideStepsHeading: string;
     asideSteps: string[];
     asideFaqHeading: string;
     asideFaq: { q: string; a: string }[];
-    success: { title: string; body: string; sendAnother: string };
+    charCounter: (used: number, max: number) => string;
+    charCounterWithMin: (used: number, max: number, min: number) => string;
+    submitDisabledHint: string;
+    truncatedWarning: string;
+    infoNoticeTelegram: string;
+    afterClick: {
+      heading: string;
+      hint: string;
+      emailLabel: string;
+      telegramLabel: string;
+    };
+    noJs: {
+      heading: string;
+      body: string;
+      telegramButton: string;
+      mailtoButton: string;
+    };
+    prefill: {
+      name: string;
+      email: string;
+      company: string;
+      projectType: string;
+      budget: string;
+      detailsHeading: string;
+      truncatedMarker: string;
+    };
     errors: {
       requiredName: string;
-      requiredEmail: string;
       invalidEmail: string;
       requiredDetails: string;
       detailsTooShort: string;
-      requiredConsent: string;
-      generic: string;
-      rateLimit: string;
     };
   };
   privacy: {

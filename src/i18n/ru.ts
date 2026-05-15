@@ -34,6 +34,7 @@ export const ru: Dictionary = {
     ],
     contactsHeading: "Контакты",
     emailAriaLabel: "Написать на email",
+    telegramAriaLabel: "Написать в Telegram",
     githubAriaLabel: "GitHub автора",
     privacy: "Политика конфиденциальности",
     cookieSettings: "Настройки cookie",
@@ -187,15 +188,13 @@ export const ru: Dictionary = {
       "Расскажите кратко о задаче — отвечу в течение суток. Никаких автоответчиков.",
     fields: {
       name: "Имя",
-      email: "Email",
+      email: "Email (необязательно)",
       company: "Компания (необязательно)",
       projectType: "Тип проекта",
       budget: "Бюджет",
       details: "Детали проекта",
-      consent: "Я даю согласие на обработку моих персональных данных в соответствии с",
-      consentLink: "политикой конфиденциальности",
-      submit: "Отправить запрос",
-      submitting: "Отправляется...",
+      submit: "Открыть в Telegram",
+      submitOpened: "Открыто в Telegram",
     },
     placeholders: {
       name: "Как к вам обращаться",
@@ -220,6 +219,7 @@ export const ru: Dictionary = {
       "Пока не определился",
     ],
     asideEmailHeading: "Прямой email",
+    asideTelegramHeading: "Прямой Telegram",
     asideStepsHeading: "Что будет дальше",
     asideSteps: [
       "Первичное обсуждение в течение суток.",
@@ -247,23 +247,40 @@ export const ru: Dictionary = {
         a: "Подпишу. Не указываю в портфолио ни цифр, ни названий продуктов под NDA.",
       },
     ],
-    success: {
-      title: "Заявка отправлена",
-      body:
-        "Спасибо! Я отвечу на указанный email в течение суток. Если ответ не пришёл — проверьте «Спам», иногда письма уходят туда.",
-      sendAnother: "Отправить ещё одно",
+    charCounter: (used, max) => `${used} / ${max}`,
+    charCounterWithMin: (used, max, min) => `${used} / ${max} · минимум ${min}`,
+    submitDisabledHint:
+      "Заполните «Имя» и «Детали проекта» (минимум 30 символов).",
+    truncatedWarning:
+      "Текст длиннее лимита Telegram — будет обрезан при открытии. Сократите или продолжите в Telegram.",
+    infoNoticeTelegram:
+      "Нажимая «Открыть в Telegram», вы переходите в свой Telegram-клиент с черновиком сообщения. Отправка происходит из вашего клиента и регулируется правилами Telegram.",
+    afterClick: {
+      heading: "Если Telegram не открылся",
+      hint: "Используйте email или откройте Telegram напрямую.",
+      emailLabel: "Написать на email",
+      telegramLabel: "Открыть Telegram",
+    },
+    noJs: {
+      heading: "Без JavaScript форма не работает",
+      body: "Свяжитесь напрямую — это так же быстро.",
+      telegramButton: "Написать в Telegram",
+      mailtoButton: "Написать на email",
+    },
+    prefill: {
+      name: "Имя",
+      email: "Email",
+      company: "Компания",
+      projectType: "Тип проекта",
+      budget: "Бюджет",
+      detailsHeading: "Детали",
+      truncatedMarker: "… [текст обрезан, продолжите в Telegram]",
     },
     errors: {
       requiredName: "Укажите имя",
-      requiredEmail: "Укажите email",
       invalidEmail: "Похоже, email указан с ошибкой",
       requiredDetails: "Опишите задачу хотя бы в нескольких предложениях",
       detailsTooShort: "Минимум 30 символов — иначе не пойму, о чём речь",
-      requiredConsent: "Без согласия отправить нельзя",
-      generic:
-        "Что-то пошло не так. Попробуйте ещё раз или напишите напрямую на email из правой колонки.",
-      rateLimit:
-        "Слишком много запросов. Подождите минуту и повторите попытку, или напишите напрямую.",
     },
   },
   privacy: {

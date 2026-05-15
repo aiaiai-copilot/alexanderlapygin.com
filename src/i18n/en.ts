@@ -30,6 +30,7 @@ export const en: Dictionary = {
     services: ["Web application development", "Technical writing", "Consulting"],
     contactsHeading: "Contact",
     emailAriaLabel: "Send email",
+    telegramAriaLabel: "Message on Telegram",
     githubAriaLabel: "Author's GitHub",
     privacy: "Privacy policy",
     cookieSettings: "Cookie settings",
@@ -178,15 +179,13 @@ export const en: Dictionary = {
       "Tell me briefly what you need — I respond within 24 hours. No autoresponders.",
     fields: {
       name: "Name",
-      email: "Email",
+      email: "Email (optional)",
       company: "Company (optional)",
       projectType: "Project type",
       budget: "Budget",
       details: "Project details",
-      consent: "I consent to processing of my personal data per the",
-      consentLink: "privacy policy",
-      submit: "Send request",
-      submitting: "Sending...",
+      submit: "Open in Telegram",
+      submitOpened: "Opened in Telegram",
     },
     placeholders: {
       name: "How should I address you",
@@ -211,6 +210,7 @@ export const en: Dictionary = {
       "Not sure yet",
     ],
     asideEmailHeading: "Direct email",
+    asideTelegramHeading: "Direct Telegram",
     asideStepsHeading: "What happens next",
     asideSteps: [
       "Initial discussion within 24 hours.",
@@ -239,23 +239,40 @@ export const en: Dictionary = {
           "Happy to sign. I never publish numbers or product names that fall under NDA.",
       },
     ],
-    success: {
-      title: "Request sent",
-      body:
-        "Thanks. I'll reply within 24 hours. If you don't see it, check the spam folder — letters do end up there sometimes.",
-      sendAnother: "Send another",
+    charCounter: (used, max) => `${used} / ${max}`,
+    charCounterWithMin: (used, max, min) => `${used} / ${max} · min ${min}`,
+    submitDisabledHint:
+      "Fill in “Name” and “Project details” (at least 30 characters).",
+    truncatedWarning:
+      "Text exceeds Telegram's limit and will be truncated when opening. Shorten it or continue in Telegram.",
+    infoNoticeTelegram:
+      "Clicking «Open in Telegram» opens your Telegram client with a draft message. The message is sent from your client per Telegram's terms.",
+    afterClick: {
+      heading: "If Telegram didn't open",
+      hint: "Use email or open Telegram directly.",
+      emailLabel: "Send email",
+      telegramLabel: "Open Telegram",
+    },
+    noJs: {
+      heading: "JavaScript is required for this form",
+      body: "Reach out directly — equally fast.",
+      telegramButton: "Message on Telegram",
+      mailtoButton: "Send email",
+    },
+    prefill: {
+      name: "Name",
+      email: "Email",
+      company: "Company",
+      projectType: "Project type",
+      budget: "Budget",
+      detailsHeading: "Details",
+      truncatedMarker: "… [text truncated, continue in Telegram]",
     },
     errors: {
       requiredName: "Please enter your name",
-      requiredEmail: "Please enter your email",
       invalidEmail: "Looks like the email is malformed",
       requiredDetails: "Please describe the task in a few sentences",
       detailsTooShort: "At least 30 characters — otherwise I can't tell what's needed",
-      requiredConsent: "Consent is required to send",
-      generic:
-        "Something went wrong. Try again or write directly to the email in the right column.",
-      rateLimit:
-        "Too many requests. Wait a minute and try again, or email directly.",
     },
   },
   privacy: {

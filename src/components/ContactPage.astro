@@ -1,5 +1,5 @@
 ---
-import { localizedPath, t, type Locale } from "~/i18n";
+import { t, type Locale } from "~/i18n";
 
 interface Props {
   locale: Locale;
@@ -8,6 +8,14 @@ const { locale } = Astro.props;
 const dict = t(locale);
 const fields = dict.contact.fields;
 const placeholders = dict.contact.placeholders;
+
+const tgUsername = import.meta.env.PUBLIC_TELEGRAM_USERNAME ?? "";
+const contactEmail = import.meta.env.PUBLIC_CONTACT_EMAIL ?? "";
+const tgDirectUrl = tgUsername ? `https://t.me/${tgUsername}` : "";
+const mailtoUrl = contactEmail ? `mailto:${contactEmail}` : "";
+
+const detailsMax = 2000;
+const detailsMin = 30;
 ---
 
 <section class="mx-auto max-w-6xl px-4 md:px-6 pt-16 md:pt-20 pb-8">
@@ -22,22 +30,54 @@ const placeholders = dict.contact.placeholders;
 <section class="mx-auto max-w-6xl px-4 md:px-6 pb-16">
   <div class="grid lg:grid-cols-[3fr_2fr] gap-8 lg:gap-12">
     <div>
+      <noscript>
+        <style>#contact-form,#cf-after-click{display:none!important}</style>
+        <div
+          class="rounded-lg p-6 md:p-8 border space-y-4"
+          style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
+        >
+          <h2 class="text-xl font-semibold" style="color: var(--color-text);">
+            {dict.contact.noJs.heading}
+          </h2>
+          <p class="text-base" style="color: var(--color-text-muted);">
+            {dict.contact.noJs.body}
+          </p>
+          <div class="flex flex-col sm:flex-row gap-3 pt-2">
+            {tgDirectUrl && (
+              <a
+                href={tgDirectUrl}
+                rel="noopener"
+                target="_blank"
+                class="inline-flex items-center justify-center px-5 py-3 rounded-lg text-base font-semibold hover:opacity-90"
+                style="background-color: var(--color-accent); color: var(--color-accent-text);"
+              >
+                {dict.contact.noJs.telegramButton}
+              </a>
+            )}
+            {mailtoUrl && (
+              <a
+                href={mailtoUrl}
+                class="inline-flex items-center justify-center px-5 py-3 rounded-lg text-base font-semibold border hover:bg-[var(--color-bg-muted)] transition-colors"
+                style="border-color: var(--color-border); color: var(--color-text);"
+              >
+                {dict.contact.noJs.mailtoButton}
+              </a>
+            )}
+          </div>
+        </div>
+      </noscript>
+
       <form
         id="contact-form"
         novalidate
         data-locale={locale}
+        data-username={tgUsername}
+        data-email={contactEmail}
+        data-details-max={detailsMax}
+        data-details-min={detailsMin}
         class="rounded-lg p-6 md:p-8 border space-y-5"
         style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
       >
-        <input
-          type="text"
-          name="website"
-          tabindex="-1"
-          autocomplete="off"
-          aria-hidden="true"
-          class="sr-only"
-        />
-
         <div>
           <label for="cf-name" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
             {fields.name}
@@ -64,7 +104,6 @@ const placeholders = dict.contact.placeholders;
             id="cf-email"
             name="email"
             type="email"
-            required
             maxlength="254"
             placeholder={placeholders.email}
             class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)]"
@@ -132,36 +171,33 @@ const placeholders = dict.contact.placeholders;
             id="cf-details"
             name="details"
             required
-            minlength="30"
-            maxlength="5000"
+            minlength={detailsMin}
+            maxlength={detailsMax}
             rows="6"
             placeholder={placeholders.details}
             class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)] resize-y"
             style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
-            aria-describedby="cf-details-error"
+            aria-describedby="cf-details-error cf-details-counter"
           ></textarea>
-          <p id="cf-details-error" class="text-sm mt-1.5 hidden" style="color: var(--color-danger);"></p>
+          <div class="mt-1.5 flex items-start justify-between gap-3">
+            <p id="cf-details-error" class="text-sm hidden" style="color: var(--color-danger);"></p>
+            <p
+              id="cf-details-counter"
+              class="text-sm tabular-nums whitespace-nowrap ml-auto"
+              style="color: var(--color-text-muted);"
+            >
+              {dict.contact.charCounterWithMin(0, detailsMax, detailsMin)}
+            </p>
+          </div>
         </div>
 
-        <div>
-          <label class="flex items-start gap-3 cursor-pointer">
-            <input
-              id="cf-consent"
-              name="consent"
-              type="checkbox"
-              class="mt-1 w-4 h-4 cursor-pointer"
-            />
-            <span class="text-sm" style="color: var(--color-text);">
-              {fields.consent}{" "}
-              <a href={localizedPath(locale, "/privacy")} class="hover:underline" style="color: var(--color-accent);">
-                {fields.consentLink}
-              </a>.
-            </span>
-          </label>
-          <p id="cf-consent-error" class="text-sm mt-1.5 hidden" style="color: var(--color-danger);"></p>
-        </div>
-
-        <p id="cf-form-error" class="text-sm hidden rounded-md p-3" style="color: var(--color-danger); background-color: color-mix(in oklab, var(--color-danger) 10%, transparent);"></p>
+        <p
+          id="cf-truncated-warning"
+          class="text-sm hidden rounded-md p-3"
+          style="color: var(--color-warning, var(--color-text)); background-color: color-mix(in oklab, var(--color-warning, var(--color-text)) 10%, transparent);"
+        >
+          {dict.contact.truncatedWarning}
+        </p>
 
         <button
           type="submit"
@@ -171,41 +207,86 @@ const placeholders = dict.contact.placeholders;
           style="background-color: var(--color-accent); color: var(--color-accent-text);"
         >
           <span data-label-rest>{fields.submit}</span>
-          <span data-label-sending class="hidden">{fields.submitting}</span>
+          <span data-label-opened class="hidden">{fields.submitOpened}</span>
         </button>
+
+        <p class="text-xs leading-relaxed" style="color: var(--color-text-muted);">
+          {dict.contact.infoNoticeTelegram}
+        </p>
       </form>
 
       <div
-        id="cf-success"
-        class="hidden rounded-lg p-6 md:p-8 border text-center"
+        id="cf-after-click"
+        class="hidden mt-6 rounded-lg p-5 md:p-6 border"
         style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
       >
-        <h2 class="text-2xl font-semibold mb-3" style="color: var(--color-text);">
-          {dict.contact.success.title}
+        <h2 class="text-base font-semibold mb-1" style="color: var(--color-text);">
+          {dict.contact.afterClick.heading}
         </h2>
-        <p class="text-base mb-6" style="color: var(--color-text-muted);">
-          {dict.contact.success.body}
+        <p class="text-sm mb-4" style="color: var(--color-text-muted);">
+          {dict.contact.afterClick.hint}
         </p>
-        <button
-          id="cf-send-another"
-          type="button"
-          class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border hover:bg-[var(--color-bg-muted)] transition-colors"
-          style="border-color: var(--color-border); color: var(--color-text);"
-        >
-          {dict.contact.success.sendAnother}
-        </button>
+        <div class="flex flex-col sm:flex-row gap-3">
+          {mailtoUrl && (
+            <a
+              href={mailtoUrl}
+              data-track="mailto"
+              class="inline-flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium border hover:bg-[var(--color-bg-muted)] transition-colors"
+              style="border-color: var(--color-border); color: var(--color-text);"
+            >
+              {dict.contact.afterClick.emailLabel}
+            </a>
+          )}
+          {tgDirectUrl && (
+            <a
+              href={tgDirectUrl}
+              rel="noopener"
+              target="_blank"
+              data-track="telegram-direct"
+              class="inline-flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium border hover:bg-[var(--color-bg-muted)] transition-colors"
+              style="border-color: var(--color-border); color: var(--color-text);"
+            >
+              {dict.contact.afterClick.telegramLabel}
+            </a>
+          )}
+        </div>
       </div>
     </div>
 
     <aside class="space-y-6">
-      <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
-        <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
-          {dict.contact.asideEmailHeading}
+      {tgDirectUrl && (
+        <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
+          <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
+            {dict.contact.asideTelegramHeading}
+          </div>
+          <a
+            href={tgDirectUrl}
+            rel="noopener"
+            target="_blank"
+            data-track="telegram-direct"
+            class="text-base font-medium hover:underline"
+            style="color: var(--color-accent);"
+          >
+            @{tgUsername}
+          </a>
         </div>
-        <a href="mailto:hello@alexanderlapygin.com" class="text-base font-medium hover:underline" style="color: var(--color-accent);">
-          hello@alexanderlapygin.com
-        </a>
-      </div>
+      )}
+
+      {mailtoUrl && (
+        <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
+          <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
+            {dict.contact.asideEmailHeading}
+          </div>
+          <a
+            href={mailtoUrl}
+            data-track="mailto"
+            class="text-base font-medium hover:underline break-all"
+            style="color: var(--color-accent);"
+          >
+            {contactEmail}
+          </a>
+        </div>
+      )}
 
       <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
         <h3 class="text-sm font-semibold mb-3" style="color: var(--color-text);">
@@ -239,190 +320,163 @@ const placeholders = dict.contact.placeholders;
 </section>
 
 <script>
-  type Errors = {
-    requiredName: string;
-    requiredEmail: string;
-    invalidEmail: string;
-    requiredDetails: string;
-    detailsTooShort: string;
-    requiredConsent: string;
-    generic: string;
-    rateLimit: string;
-  };
+  import { buildTelegramDeeplink, type ContactFormValues } from "~/lib/contact-deeplink";
+  import { dictionaries, type Locale } from "~/i18n";
 
   const form = document.getElementById("contact-form") as HTMLFormElement | null;
-  const submitBtn = document.getElementById("cf-submit") as HTMLButtonElement | null;
-  const successPanel = document.getElementById("cf-success");
-  const sendAnotherBtn = document.getElementById("cf-send-another");
-  const labelRest = submitBtn?.querySelector<HTMLElement>("[data-label-rest]");
-  const labelSending = submitBtn?.querySelector<HTMLElement>("[data-label-sending]");
+  if (form) initContactForm(form);
 
-  const locale = (form?.dataset.locale as "ru" | "en") ?? "ru";
-  const errors: Errors = locale === "ru"
-    ? {
-        requiredName: "Укажите имя",
-        requiredEmail: "Укажите email",
-        invalidEmail: "Похоже, email указан с ошибкой",
-        requiredDetails: "Опишите задачу хотя бы в нескольких предложениях",
-        detailsTooShort: "Минимум 30 символов — иначе не пойму, о чём речь",
-        requiredConsent: "Без согласия отправить нельзя",
-        generic:
-          "Что-то пошло не так. Попробуйте ещё раз или напишите напрямую на email из правой колонки.",
-        rateLimit:
-          "Слишком много запросов. Подождите минуту и повторите попытку, или напишите напрямую.",
+  function initContactForm(form: HTMLFormElement) {
+    const submitBtn = document.getElementById("cf-submit") as HTMLButtonElement | null;
+    const labelRest = submitBtn?.querySelector<HTMLElement>("[data-label-rest]") ?? null;
+    const labelOpened = submitBtn?.querySelector<HTMLElement>("[data-label-opened]") ?? null;
+    const detailsCounter = document.getElementById("cf-details-counter");
+    const truncatedWarning = document.getElementById("cf-truncated-warning");
+    const afterClick = document.getElementById("cf-after-click");
+
+    const locale = (form.dataset.locale as Locale | undefined) ?? "ru";
+    const username = form.dataset.username ?? "";
+    const detailsMax = Number(form.dataset.detailsMax) || 2000;
+    const detailsMin = Number(form.dataset.detailsMin) || 30;
+    const dict = dictionaries[locale];
+    const errors = dict.contact.errors;
+    const labels = dict.contact.prefill;
+
+    function setFieldError(field: string, message: string | null) {
+      const input = document.getElementById(`cf-${field}`) as
+        | HTMLInputElement
+        | HTMLTextAreaElement
+        | null;
+      const err = document.getElementById(`cf-${field}-error`);
+      if (!input || !err) return;
+      if (message) {
+        err.textContent = message;
+        err.classList.remove("hidden");
+        input.setAttribute("aria-invalid", "true");
+        input.style.borderColor = "var(--color-danger)";
+      } else {
+        err.textContent = "";
+        err.classList.add("hidden");
+        input.removeAttribute("aria-invalid");
+        input.style.borderColor = "var(--color-border)";
       }
-    : {
-        requiredName: "Please enter your name",
-        requiredEmail: "Please enter your email",
-        invalidEmail: "Looks like the email is malformed",
-        requiredDetails: "Please describe the task in a few sentences",
-        detailsTooShort: "At least 30 characters — otherwise I can't tell what's needed",
-        requiredConsent: "Consent is required to send",
-        generic:
-          "Something went wrong. Try again or write directly to the email in the right column.",
-        rateLimit:
-          "Too many requests. Wait a minute and try again, or email directly.",
+    }
+
+    function readValues(): ContactFormValues {
+      const data = new FormData(form);
+      const get = (k: string) => ((data.get(k) as string | null) ?? "").trim();
+      return {
+        name: get("name"),
+        email: get("email") || undefined,
+        company: get("company") || undefined,
+        projectType: get("projectType") || undefined,
+        budget: get("budget") || undefined,
+        details: get("details"),
+      };
+    }
+
+    function validate(values: ContactFormValues): { valid: boolean; firstInvalid?: string } {
+      let firstInvalid: string | undefined;
+      let valid = true;
+      const fail = (field: string, message: string) => {
+        setFieldError(field, message);
+        valid = false;
+        if (!firstInvalid) firstInvalid = field;
       };
 
-  function setFieldError(field: string, message: string | null) {
-    const input = document.getElementById(`cf-${field}`) as
-      | HTMLInputElement
-      | HTMLTextAreaElement
-      | null;
-    const err = document.getElementById(`cf-${field}-error`);
-    if (!input || !err) return;
-    if (message) {
-      err.textContent = message;
-      err.classList.remove("hidden");
-      input.setAttribute("aria-invalid", "true");
-      input.style.borderColor = "var(--color-danger)";
-    } else {
-      err.textContent = "";
-      err.classList.add("hidden");
-      input.removeAttribute("aria-invalid");
-      input.style.borderColor = "var(--color-border)";
+      if (!values.name) fail("name", errors.requiredName);
+      else setFieldError("name", null);
+
+      if (values.email) {
+        const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRe.test(values.email)) fail("email", errors.invalidEmail);
+        else setFieldError("email", null);
+      } else {
+        setFieldError("email", null);
+      }
+
+      if (!values.details) fail("details", errors.requiredDetails);
+      else if (values.details.length < detailsMin) fail("details", errors.detailsTooShort);
+      else setFieldError("details", null);
+
+      return { valid, firstInvalid };
     }
+
+    function recompute() {
+      if (!submitBtn) return;
+      const values = readValues();
+      const nameOk = values.name.length > 0;
+      const detailsOk = values.details.length >= detailsMin;
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const emailOk = !values.email || emailRe.test(values.email);
+      const allOk = nameOk && detailsOk && emailOk;
+      submitBtn.disabled = !allOk;
+      if (allOk) submitBtn.removeAttribute("title");
+      else submitBtn.setAttribute("title", dict.contact.submitDisabledHint);
+
+      if (detailsCounter) {
+        const used = values.details.length;
+        detailsCounter.textContent =
+          used < detailsMin
+            ? dict.contact.charCounterWithMin(used, detailsMax, detailsMin)
+            : dict.contact.charCounter(used, detailsMax);
+        detailsCounter.style.color =
+          used > detailsMax ? "var(--color-danger)" : "var(--color-text-muted)";
+      }
+
+      if (truncatedWarning && username) {
+        const { truncated } = buildTelegramDeeplink(values, labels, username);
+        truncatedWarning.classList.toggle("hidden", !truncated);
+      }
+    }
+
+    form.addEventListener("input", recompute);
+    form.addEventListener("change", recompute);
+    recompute();
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!submitBtn || !labelRest || !labelOpened) return;
+
+      const values = readValues();
+      const { valid, firstInvalid } = validate(values);
+      if (!valid) {
+        trackGoal("form_validation_error");
+        if (firstInvalid) document.getElementById(`cf-${firstInvalid}`)?.focus();
+        return;
+      }
+      if (!username) return;
+
+      const { url } = buildTelegramDeeplink(values, labels, username);
+      trackGoal("form_submit_telegram");
+      window.open(url, "_blank", "noopener");
+
+      labelRest.classList.add("hidden");
+      labelOpened.classList.remove("hidden");
+      submitBtn.disabled = true;
+      afterClick?.classList.remove("hidden");
+      window.setTimeout(() => {
+        labelRest.classList.remove("hidden");
+        labelOpened.classList.add("hidden");
+        recompute();
+      }, 3000);
+    });
+
+    document.querySelectorAll<HTMLAnchorElement>('a[data-track="mailto"]').forEach((a) => {
+      a.addEventListener("click", () => trackGoal("mailto_click"));
+    });
+    document.querySelectorAll<HTMLAnchorElement>('a[data-track="telegram-direct"]').forEach((a) => {
+      a.addEventListener("click", () => trackGoal("telegram_direct_click"));
+    });
   }
 
-  function setFormError(message: string | null) {
-    const err = document.getElementById("cf-form-error");
-    if (!err) return;
-    if (message) {
-      err.textContent = message;
-      err.classList.remove("hidden");
-    } else {
-      err.textContent = "";
-      err.classList.add("hidden");
-    }
-  }
-
-  function validate(data: FormData): { valid: boolean; firstInvalid?: string } {
-    let firstInvalid: string | undefined;
-    let valid = true;
-    const fail = (field: string, message: string) => {
-      setFieldError(field, message);
-      valid = false;
-      if (!firstInvalid) firstInvalid = field;
+  function trackGoal(goal: string) {
+    const idRaw = import.meta.env.PUBLIC_METRIKA_ID;
+    const id = Number(idRaw);
+    if (!Number.isFinite(id) || id <= 0) return;
+    const w = window as unknown as {
+      ym?: (id: number, action: string, goal: string) => void;
     };
-
-    const name = (data.get("name") as string | null)?.trim() ?? "";
-    if (!name) fail("name", errors.requiredName);
-    else setFieldError("name", null);
-
-    const email = (data.get("email") as string | null)?.trim() ?? "";
-    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) fail("email", errors.requiredEmail);
-    else if (!emailRe.test(email)) fail("email", errors.invalidEmail);
-    else setFieldError("email", null);
-
-    const details = (data.get("details") as string | null)?.trim() ?? "";
-    if (!details) fail("details", errors.requiredDetails);
-    else if (details.length < 30) fail("details", errors.detailsTooShort);
-    else setFieldError("details", null);
-
-    const consent = data.get("consent");
-    const consentErr = document.getElementById("cf-consent-error");
-    if (!consent) {
-      if (consentErr) {
-        consentErr.textContent = errors.requiredConsent;
-        consentErr.classList.remove("hidden");
-      }
-      valid = false;
-      if (!firstInvalid) firstInvalid = "consent";
-    } else {
-      if (consentErr) {
-        consentErr.textContent = "";
-        consentErr.classList.add("hidden");
-      }
-    }
-
-    return { valid, firstInvalid };
+    w.ym?.(id, "reachGoal", goal);
   }
-
-  function recomputeSubmitState() {
-    if (!form || !submitBtn) return;
-    const data = new FormData(form);
-    const name = ((data.get("name") as string | null) ?? "").trim();
-    const email = ((data.get("email") as string | null) ?? "").trim();
-    const details = ((data.get("details") as string | null) ?? "").trim();
-    const consent = !!data.get("consent");
-    submitBtn.disabled = !(name && email && details && consent);
-  }
-
-  form?.addEventListener("input", recomputeSubmitState);
-  form?.addEventListener("change", recomputeSubmitState);
-  recomputeSubmitState();
-
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!form || !submitBtn || !labelRest || !labelSending) return;
-
-    setFormError(null);
-    const data = new FormData(form);
-
-    if (data.get("website")) {
-      // honeypot triggered — silent success
-      form.classList.add("hidden");
-      successPanel?.classList.remove("hidden");
-      return;
-    }
-
-    const { valid, firstInvalid } = validate(data);
-    if (!valid) {
-      if (firstInvalid) {
-        const el = document.getElementById(`cf-${firstInvalid}`);
-        el?.focus();
-      }
-      return;
-    }
-
-    submitBtn.disabled = true;
-    labelRest.classList.add("hidden");
-    labelSending.classList.remove("hidden");
-
-    try {
-      // PROTOTYPE: no backend yet. Simulate latency and a 200 response.
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      form.classList.add("hidden");
-      successPanel?.classList.remove("hidden");
-    } catch {
-      setFormError(errors.generic);
-    } finally {
-      labelRest.classList.remove("hidden");
-      labelSending.classList.add("hidden");
-      recomputeSubmitState();
-    }
-  });
-
-  sendAnotherBtn?.addEventListener("click", () => {
-    if (!form) return;
-    form.reset();
-    form.classList.remove("hidden");
-    successPanel?.classList.add("hidden");
-    setFormError(null);
-    ["name", "email", "details"].forEach((f) => setFieldError(f, null));
-    const consentErr = document.getElementById("cf-consent-error");
-    consentErr?.classList.add("hidden");
-    recomputeSubmitState();
-  });
 </script>

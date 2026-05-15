@@ -7,6 +7,9 @@ interface Props {
 const { locale } = Astro.props;
 const dict = t(locale);
 const year = new Date().getFullYear();
+
+const tgUsername = import.meta.env.PUBLIC_TELEGRAM_USERNAME ?? "";
+const contactEmail = import.meta.env.PUBLIC_CONTACT_EMAIL ?? "";
 ---
 
 <footer
@@ -38,17 +41,35 @@ const year = new Date().getFullYear();
           {dict.footer.contactsHeading}
         </div>
         <div class="flex items-center gap-3">
-          <a
-            href="mailto:hello@alexanderlapygin.com"
-            aria-label={dict.footer.emailAriaLabel}
-            class="p-2 rounded-md hover:bg-[var(--color-bg-muted)] transition-colors"
-            style="color: var(--color-text);"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <polyline points="22,6 12,13 2,6"/>
-            </svg>
-          </a>
+          {contactEmail && (
+            <a
+              href={`mailto:${contactEmail}`}
+              data-track="mailto"
+              aria-label={dict.footer.emailAriaLabel}
+              class="p-2 rounded-md hover:bg-[var(--color-bg-muted)] transition-colors"
+              style="color: var(--color-text);"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </a>
+          )}
+          {tgUsername && (
+            <a
+              href={`https://t.me/${tgUsername}`}
+              rel="noopener"
+              target="_blank"
+              data-track="telegram-direct"
+              aria-label={dict.footer.telegramAriaLabel}
+              class="p-2 rounded-md hover:bg-[var(--color-bg-muted)] transition-colors"
+              style="color: var(--color-text);"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.944 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm5.55 8.121-1.85 8.726c-.139.616-.504.769-1.022.479l-2.823-2.082-1.362 1.31c-.151.151-.278.278-.568.278l.202-2.872 5.224-4.722c.227-.202-.05-.314-.353-.113L8.484 13.2l-2.78-.871c-.604-.189-.616-.604.126-.894l10.864-4.19c.504-.189.945.114.78.876z"/>
+              </svg>
+            </a>
+          )}
           <a
             href="https://github.com/alexanderlapygin"
             rel="me noopener"
