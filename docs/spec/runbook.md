@@ -56,13 +56,13 @@ GitHub Actions — те же значения хранятся как Repository
 
 ### 2.1. Выбранный провайдер
 
-**Выбранный провайдер:** **Beget** (российский статический хостинг). Уведомление в РКН по ст. 12 152-ФЗ не требуется (хостинг в РФ).
+**Выбранный провайдер:** **Beget VPS** (российский VPS, `84.54.29.190`, root-SSH). Уведомление в РКН по ст. 12 152-ФЗ не требуется (хостинг в РФ).
 
-На прототипе использовался **Cloudflare Pages** (https://alexanderlapygin-prototype.pages.dev). Прототип сохраняется до миграции; продакшен будет на Beget.
+На прототипе использовался **Cloudflare Pages** (https://alexanderlapygin-prototype.pages.dev). Прототип сохраняется до миграции; продакшен — на Beget VPS.
 
-Кандидаты — см. [`decisions.md`](./decisions.md) §1.5.
+Кандидаты — см. [`decisions.md`](./decisions.md) §1.5. На том же VPS до миграции работает старый React-сайт (`docroot /var/www/alexanderlapygin.com/html`), процедура атомарного cutover — §2.5.
 
-**Особенность:** Beget раздаёт статику через Apache, поэтому кастомные HTTP-заголовки (см. §4) задаются через `public/.htaccess`, не через `public/_headers` (это формат Cloudflare Pages). Содержимое заголовков — то же.
+**Особенность:** на VPS веб-сервер — **Nginx**, не shared-Apache. Кастомные HTTP-заголовки, CSP, redirects и cache-control задаются в nginx vhost-конфиге, не через `.htaccess`. Источник правды — [`deploy/nginx/alexanderlapygin.com.conf`](../../deploy/nginx/alexanderlapygin.com.conf) и snippet [`deploy/nginx/alexanderlapygin-security-headers.conf`](../../deploy/nginx/alexanderlapygin-security-headers.conf) в репозитории; правки на сервере вручную **не делать**, конфигурация живёт в git, на VPS попадает через `scp` + `nginx -s reload` (процедура — §2.5 шаг 2; CI-вариант — §5.1, на момент написания всё ещё описывает старую wrangler/Cloudflare-схему и подлежит переписке).
 
 ### 2.2. Требования к хостингу
 
@@ -81,7 +81,7 @@ GitHub Actions — те же значения хранятся как Repository
 3. Указать build-time переменные окружения (см. §1) в настройках проекта на стороне провайдера.
 4. Привязать кастомный домен (`alexanderlapygin.com` и `www.alexanderlapygin.com`).
 5. Дождаться выпуска сертификата (обычно секунды-минуты).
-6. Загрузить файл с кастомными заголовками (для Cloudflare Pages — `public/_headers`, см. §4).
+6. Развернуть конфигурацию веб-сервера с кастомными заголовками (для Cloudflare Pages — `public/_headers`; для Beget VPS — nginx vhost из `deploy/nginx/`, см. §4).
 7. Если провайдер не делает редирект `www → apex` (или наоборот) штатно — настроить через DNS или Page Rules.
 
 ### 2.4. Cloudflare Pages — конкретные шаги (используется на прототипе)
@@ -99,34 +99,121 @@ wrangler pages deploy dist --project-name=alexanderlapygin
 
 Кастомные заголовки — файл `public/_headers` (Astro копирует содержимое `public/` в корень `dist/`).
 
-### 2.5. Beget — миграция с существующего сайта
+### 2.5. Beget VPS — миграция с существующего сайта
 
-На момент написания на `alexanderlapygin.com` уже работает другой сайт на том же Beget-аккаунте. Прямая замена docroot — недопустима: ошибка в `.htaccess` или деплое уронит живой сайт без отката.
+На VPS `84.54.29.190` сейчас работает старый React-сайт под `/var/www/alexanderlapygin.com/html`, обслуживаемый Nginx. Прямой `scp -r dist/* root@.../html` поверх живого docroot — недопустимо: в момент копирования сайт частично битый (часть файлов от старой версии, часть — от новой), плюс при ошибке нет отката.
 
-Безопасный паттерн — **параллельный деплой под отдельным хостом, потом cutover одним действием**.
+Безопасный паттерн — **release-каталог + atomic switch + tarball-бэкап**. Не панель-cutover (на VPS такой кнопки нет), а атомарная файловая операция.
 
-1. **Завести второй сайт в панели Beget** (раздел «Сайты») и привязать к нему staging-хост:
-   - либо служебный технический домен Beget (`<login>.beget.tech` — выдаётся каждому аккаунту автоматически),
-   - либо отдельный поддомен (например `staging.alexanderlapygin.com`) — потребует A/CNAME-записи в DNS, см. §3.
+Все шаги — под `root@84.54.29.190` по SSH. Дальше `RELEASE=$(date -u +%Y%m%dT%H%M%SZ)` для уникальной отметки релиза.
 
-2. **Опубликовать `dist/` на staging-docroot** (FTP/SSH; инструменты — §5.1). Файл `public/.htaccess` идёт вместе со статикой автоматически.
+1. **Залить новый build в release-каталог.** На VPS:
 
-3. **Прогнать верификацию** против staging-хоста (полный список — §6, дополнительно — §4):
-   - `curl -I https://<staging-host>/` — все шесть security-заголовков.
-   - `curl -I http://<staging-host>/` — 301 на HTTPS.
-   - `curl -I https://<staging-host>/contact` — 200 (не 301 на `/contact/`).
-   - `curl -I https://<staging-host>/_astro/<реальный-hash>.js` — `Cache-Control: public, max-age=31536000, immutable`, `Content-Encoding: gzip|br`.
-   - `curl -I https://<staging-host>/garbage` — 404, тело — `/404.html`.
+   ```bash
+   mkdir -p /var/www/alexanderlapygin.com/releases/${RELEASE}
+   ```
 
-   **Внимание:** правило `www → apex` в `.htaccess` на staging-хосте молча не сработает (имя не матчит `^www\.alexanderlapygin\.com$`) — это ожидаемо, оно активируется только после cutover на боевой домен. Сертификат на staging-хосте принадлежит Beget (для `<login>.beget.tech`) или выпускается отдельно для поддомена — в браузере допустим warning, для `curl`-тестов несущественно.
+   С локали:
 
-4. **Снять резервную копию текущего docroot `alexanderlapygin.com`** до любых действий с боевым хостом. FTP/SSH-выкачка в локальный tarball; хранить минимум до завершения миграции, лучше — в двух точках (локально + второе хранилище).
+   ```bash
+   rsync -avz --delete dist/ root@84.54.29.190:/var/www/alexanderlapygin.com/releases/${RELEASE}/
+   ```
 
-5. **Cutover.** В панели Beget переключить привязку домена `alexanderlapygin.com` (и `www`) на новый docroot одним действием. После переключения — повторно прогнать верификацию, уже против `https://alexanderlapygin.com/` и `https://www.alexanderlapygin.com/` (второй должен дать 301 на apex).
+2. **Скопировать nginx-конфигурацию на VPS** (только при первом деплое или когда `deploy/nginx/*` менялся), **без активации**:
 
-6. **Откат.** Обратное переключение привязки в панели Beget. Если файлы старого сайта были вытерты при cutover — восстановить из tarball'а из шага 4.
+   ```bash
+   scp deploy/nginx/alexanderlapygin-security-headers.conf \
+       root@84.54.29.190:/etc/nginx/snippets/
+   scp deploy/nginx/alexanderlapygin.com.conf \
+       root@84.54.29.190:/etc/nginx/sites-available/
+   ```
 
-После успешного cutover и финальных проверок staging-сайт можно удалить или сохранить как deployment-target для preview-окружений PR (см. spec §9.2).
+   Симлинк в `sites-enabled/` **пока не делать**: старый vhost под тем же `server_name alexanderlapygin.com` всё ещё активен — параллельная активация даст конфликт `conflicting server name` или silent-выбор первого в алфавитном порядке. Активация — на шаге 5 (cutover), одновременно со снятием старого vhost'а.
+
+   Однако синтаксис нового конфига нужно проверить заранее, не активируя его. Самый простой способ — временный отдельный test-instance:
+
+   ```bash
+   ssh root@84.54.29.190 'nginx -t -c /etc/nginx/sites-available/alexanderlapygin.com.conf' || true
+   ```
+
+   Это выдаст ошибки парсинга и `include`-резолюции; директивы уровня `http {}` (например, `gzip`) ругнутся, но это ожидаемо для отдельного фрагмента — главное, что блоков `server { ... }` нет fatal-ошибок. Точная синтаксическая проверка случится на шаге 5 после `nginx -t` поверх боевого конфига.
+
+3. **Подготовить staging-эндпоинт для верификации.** Variant A — добавить во временный staging-vhost (отдельный файл в `sites-available/`, симлинк в `sites-enabled/`) с `server_name staging.alexanderlapygin.com;` + DNS A-запись + отдельный сертификат. Variant B (проще) — staging-vhost с `server_name _;` + `listen 8443 ssl http2;`, тот же `root /var/www/alexanderlapygin.com/releases/${RELEASE};` и тот же snippet headers. Тогда проверка через `curl -k https://84.54.29.190:8443/...`.
+
+   Прогнать verification (полный список — §6); минимум:
+   - `curl -kI https://84.54.29.190:8443/` — все шесть security-заголовков.
+   - `curl -kI https://84.54.29.190:8443/contact` — 200 (не 301 на `/contact/`).
+   - `curl -kI https://84.54.29.190:8443/_astro/<реальный-hash>.js` — `Cache-Control: public, max-age=31536000, immutable`, `Content-Encoding: gzip`.
+   - `curl -kI https://84.54.29.190:8443/garbage` — 404, тело — `/404.html`.
+
+   **Внимание:** правило `www → apex` на staging не сработает — server_name его не матчит, активируется только после cutover. Сертификат на staging — самоподписанный или Beget-выданный для другого имени, отсюда `-k`.
+
+   После прохождения verification — удалить staging-vhost (или просто `unlink` симлинк из `sites-enabled/`) и `nginx -s reload`, чтобы он не остался жить параллельно с боевым.
+
+4. **Снять резервную копию текущего docroot и активной nginx-конфигурации:**
+
+   ```bash
+   ssh root@84.54.29.190 \
+     "tar -czf /root/alexanderlapygin.com-pre-cutover-${RELEASE}.tar.gz \
+        -C /var/www/alexanderlapygin.com html \
+        -C /etc/nginx sites-available sites-enabled snippets"
+   scp root@84.54.29.190:/root/alexanderlapygin.com-pre-cutover-${RELEASE}.tar.gz ./backups/
+   ```
+
+   Хранить в двух точках (на VPS под `/root/` и локально). Не удалять минимум до 48 часов после успешного cutover.
+
+5. **Cutover.** На VPS — три действия в одной SSH-сессии:
+
+   ```bash
+   # 5a. Снять старый vhost из sites-enabled (точное имя файла — из шага 4 бэкапа)
+   OLD_VHOST=$(ls /etc/nginx/sites-enabled/ | grep -i alexanderlapygin)
+   unlink /etc/nginx/sites-enabled/${OLD_VHOST}
+
+   # 5b. Активировать новый vhost
+   ln -sfn /etc/nginx/sites-available/alexanderlapygin.com.conf \
+           /etc/nginx/sites-enabled/
+
+   # 5c. Переключить docroot
+   cd /var/www/alexanderlapygin.com
+   mv html html-old-${RELEASE}
+   ln -sfn releases/${RELEASE} html
+
+   # 5d. Валидация + reload
+   nginx -t && nginx -s reload
+   ```
+
+   Шаги 5a-5c не атомарны (окно ~секунды, в течение которого сайт может отдавать 502/404). Для первого cutover (сайт без живого трафика) это приемлемо. Для последующих deploy'ев — обновляется только release-симлинк (`ln -sfn releases/${NEW} html`) через `ln -sfn` + `mv -T` (атомарный rename симлинка), без правки vhost'а и без reload nginx.
+
+   После reload — верификация против `https://alexanderlapygin.com/` и `https://www.alexanderlapygin.com/` (второй должен дать 301 на apex). Полный smoke — §6.
+
+6. **Откат.** Зеркально cutover'у:
+
+   ```bash
+   # 6a. Снять новый vhost, активировать старый
+   unlink /etc/nginx/sites-enabled/alexanderlapygin.com.conf
+   ln -sfn /etc/nginx/sites-available/${OLD_VHOST} /etc/nginx/sites-enabled/
+
+   # 6b. Вернуть docroot
+   cd /var/www/alexanderlapygin.com
+   rm html
+   mv html-old-${RELEASE} html
+
+   # 6c. Reload
+   nginx -t && nginx -s reload
+   ```
+
+   Если `html-old-${RELEASE}` или старый vhost уже удалены (после 48-часовой выдержки) — восстановить из tarball'а из шага 4:
+
+   ```bash
+   tar -xzf /root/alexanderlapygin.com-pre-cutover-${RELEASE}.tar.gz -C /tmp/restore
+   mv /tmp/restore/html /var/www/alexanderlapygin.com/html
+   cp /tmp/restore/sites-available/${OLD_VHOST} /etc/nginx/sites-available/
+   ln -sfn /etc/nginx/sites-available/${OLD_VHOST} /etc/nginx/sites-enabled/
+   unlink /etc/nginx/sites-enabled/alexanderlapygin.com.conf
+   nginx -t && nginx -s reload
+   ```
+
+После успешного cutover и стабильной работы в течение 48 часов — `html-old-${RELEASE}` можно удалить. Последние 2-3 каталога `releases/` сохранять как точки быстрого отката контента (`ln -sfn releases/<previous> html` — переключение за миллисекунды, без правки vhost'а).
 
 ---
 
@@ -162,7 +249,12 @@ DNS-записи SPF/DKIM/DMARC **не настраиваются** — сайт
 
 ## 4. Заголовки безопасности и CSP
 
-Механизм доставки — Apache `.htaccess` (Beget shared, §2.1). Единственный источник правды — файл [`public/.htaccess`](../../public/.htaccess) в репозитории; правки в панели хостинга **не делать**, конфигурация живёт в git.
+Механизм доставки — Nginx vhost-конфигурация на VPS (§2.1). Источник правды — два файла в репозитории:
+
+- [`deploy/nginx/alexanderlapygin.com.conf`](../../deploy/nginx/alexanderlapygin.com.conf) — vhost (три server-блока: HTTP→HTTPS, www→apex, основной).
+- [`deploy/nginx/alexanderlapygin-security-headers.conf`](../../deploy/nginx/alexanderlapygin-security-headers.conf) — snippet с `add_header`-директивами, который **должен подключаться через `include` в каждом location**, где есть собственный `add_header`. Это известный nginx-footgun: при появлении `add_header` во вложенном блоке наследование `add_header` из родителя отключается полностью.
+
+Правки на сервере вручную **не делать** — конфигурация живёт в git, на VPS попадает через `scp deploy/nginx/*` + `nginx -t` + `nginx -s reload` (см. §2.5 шаг 2 и §5.1).
 
 Что доставляется:
 
@@ -172,12 +264,10 @@ DNS-записи SPF/DKIM/DMARC **не настраиваются** — сайт
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=()`
 - `Content-Security-Policy` (полный текст — см. §14)
-- Cache-Control для `/_astro/*` и `/fonts/*` — `public, max-age=31536000, immutable`
-- Cache-Control для `*.html` — `no-cache`
+- Cache-Control для `/_astro/*` и `/fonts/*` — `public, max-age=31536000, immutable` (location `~ ^/(_astro|fonts)/`)
+- Cache-Control для `*.html` — `no-cache` (location `~ \.html$` и кастомный `/404.html`)
 
-Дополнительно `.htaccess` делает: HTTP→HTTPS-редирект, www→apex-редирект, внутренний rewrite для clean URLs под `trailingSlash:'never'`, gzip/brotli-компрессию, `ErrorDocument 404 /404.html`.
-
-Дизайн файла со всеми обоснованиями — [`docs/superpowers/specs/2026-05-15-htaccess-beget-design.md`](../superpowers/specs/2026-05-15-htaccess-beget-design.md).
+Дополнительно vhost делает: HTTP→HTTPS-редирект (отдельный server-блок на `listen 80`), www→apex-редирект (отдельный server-блок), внутренний `try_files $uri $uri/index.html =404` для clean URLs под `trailingSlash:'never'`, gzip-компрессию, `error_page 404 /404.html`. Brotli — опционально, если модуль собран (`nginx -V | grep brotli`).
 
 **Проверка после деплоя:**
 
@@ -485,11 +575,11 @@ object-src 'none';
 upgrade-insecure-requests
 ```
 
-Это однострочное значение HTTP-заголовка — переводы строк выше только для читаемости. Доставляется через `public/.htaccess` (см. §4); это же значение продублировано там одной строкой в директиве `Header always set Content-Security-Policy`.
+Это однострочное значение HTTP-заголовка — переводы строк выше только для читаемости. Доставляется через nginx vhost-конфигурацию (см. §4); это же значение продублировано одной строкой в [`deploy/nginx/alexanderlapygin-security-headers.conf`](../../deploy/nginx/alexanderlapygin-security-headers.conf) в директиве `add_header Content-Security-Policy "..." always`.
 
 **Замечание про `form-action 'self'`.** Кнопка «Открыть в Telegram» не является `<form action>` — она формирует URL на клиенте и открывает его через `window.open` / `<a target="_blank">`. Поэтому CSP не блокирует переход на `t.me`.
 
-**Замечание про webvisor.** Домены `mc.webvisor.org` / `mc.webvisor.com` в текущей политике **отсутствуют сознательно** — Webvisor и карта кликов выключены в Метрике (`decisions.md` §5.2). При возврате к Webvisor добавить их в `script-src`, `img-src`, `connect-src` (всегда втроём) и обновить `.htaccess` синхронно.
+**Замечание про webvisor.** Домены `mc.webvisor.org` / `mc.webvisor.com` в текущей политике **отсутствуют сознательно** — Webvisor и карта кликов выключены в Метрике (`decisions.md` §5.2). При возврате к Webvisor добавить их в `script-src`, `img-src`, `connect-src` (всегда втроём) и синхронно обновить `deploy/nginx/alexanderlapygin-security-headers.conf`.
 
 **Проверка:** [csp-evaluator.withgoogle.com](https://csp-evaluator.withgoogle.com). Ожидаемые предупреждения:
 - `style-src 'unsafe-inline'` — High Risk. Принимается сознательно, см. [`decisions.md`](./decisions.md) §3.2.

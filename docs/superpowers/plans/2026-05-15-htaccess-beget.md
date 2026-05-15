@@ -1,5 +1,7 @@
 # `.htaccess` for Beget — Implementation Plan
 
+> **⚠️ SUPERSEDED (2026-05-15, поздняя сессия).** План реализован, коммит `7c2b3ee feat(deploy): add public/.htaccess for Beget Apache hosting` — но под неверную предпосылку (Beget shared / Apache). Реальный хостинг — Beget VPS с Nginx; `.htaccess` молча игнорируется. Файл `public/.htaccess` удалён, конфигурация переведена в `deploy/nginx/` (см. runbook §4 и §2.5). Документ сохранён как исторический record.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Положить `public/.htaccess` для Beget shared-хостинга, доставляющий security-заголовки, CSP, кэш статики, HTTPS- и www→apex-редиректы, clean URLs под `trailingSlash:'never'`, gzip/brotli и кастомную 404.

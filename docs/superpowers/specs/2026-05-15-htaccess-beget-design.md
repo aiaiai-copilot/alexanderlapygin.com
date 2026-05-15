@@ -1,7 +1,9 @@
 # Дизайн `.htaccess` для Beget
 
+> **⚠️ SUPERSEDED (2026-05-15, поздняя сессия).** Документ написан под неверную предпосылку: реальный хостинг — **Beget VPS с Nginx**, а не Beget shared с Apache. `.htaccess` на Nginx молча игнорируется. Файл `public/.htaccess` удалён из репо. Актуальный источник правды для web-конфигурации — [`deploy/nginx/alexanderlapygin.com.conf`](../../../deploy/nginx/alexanderlapygin.com.conf) и snippet [`deploy/nginx/alexanderlapygin-security-headers.conf`](../../../deploy/nginx/alexanderlapygin-security-headers.conf), процедура cutover — runbook.md §2.5. Документ сохранён как исторический record решения и обоснования каждой директивы (CSP, кэш, redirects) — содержимое директив всё ещё корректно по смыслу, переведено в `add_header`/`return 301`/`try_files` в Nginx.
+
 **Дата:** 2026-05-15
-**Скоуп:** один файл `public/.htaccess`, который после `astro build` оказывается в корне `dist/` и публикуется на Beget shared-хостинге как Apache-конфигурация docroot.
+**Скоуп (исторический):** один файл `public/.htaccess`, который после `astro build` оказывался в корне `dist/` и публиковался на Beget shared-хостинге как Apache-конфигурация docroot.
 
 ## 1. Контекст
 
