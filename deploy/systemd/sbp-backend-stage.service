@@ -1,0 +1,26 @@
+[Unit]
+Description=SBP Payment Demo - Backend API (STAGE)
+Documentation=https://github.com/aiaiai-copilot/showcase-sbp-payment-fullstack
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/alexanderlapygin.com/legacy/showcase/payments/sbp/backend
+ExecStart=/usr/local/bin/node dist/server.js
+
+Restart=always
+RestartSec=10
+
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/sbp-backend/stage.env
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sbp-backend-stage
+
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
