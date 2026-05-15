@@ -133,34 +133,38 @@ DNS-записи SPF/DKIM/DMARC **не настраиваются** — сайт
 
 ## 4. Заголовки безопасности и CSP
 
-Механизм доставки заголовков зависит от провайдера. На Cloudflare Pages — через файл `public/_headers`:
+Механизм доставки — Apache `.htaccess` (Beget shared, §2.1). Единственный источник правды — файл [`public/.htaccess`](../../public/.htaccess) в репозитории; правки в панели хостинга **не делать**, конфигурация живёт в git.
 
-```
-/*
-  Strict-Transport-Security: max-age=63072000; includeSubDomains
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
-  Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://mc.yandex.ru https://mc.yandex.com https://yastatic.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://mc.yandex.ru https://mc.yandex.com; connect-src 'self' https://mc.yandex.ru https://mc.yandex.com; frame-src https://mc.yandex.ru https://mc.yandex.com; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
+Что доставляется:
 
-# Хешированная статика — длинный кэш
-/_astro/*
-  Cache-Control: public, max-age=31536000, immutable
+- `Strict-Transport-Security: max-age=63072000; includeSubDomains`
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=()`
+- `Content-Security-Policy` (полный текст — см. §14)
+- Cache-Control для `/_astro/*` и `/fonts/*` — `public, max-age=31536000, immutable`
+- Cache-Control для `*.html` — `no-cache`
 
-/fonts/*
-  Cache-Control: public, max-age=31536000, immutable
-```
+Дополнительно `.htaccess` делает: HTTP→HTTPS-редирект, www→apex-редирект, внутренний rewrite для clean URLs под `trailingSlash:'never'`, gzip/brotli-компрессию, `ErrorDocument 404 /404.html`.
 
-Полный CSP — см. §14.
-
-Для других провайдеров (Netlify — `_headers`, Yandex Cloud Object Storage — через `CORS-Configuration` API + Edge function, GitHub Pages — заголовки только через сторонний прокси) — реализация отличается, итоговый набор заголовков одинаковый.
+Дизайн файла со всеми обоснованиями — [`docs/superpowers/specs/2026-05-15-htaccess-beget-design.md`](../superpowers/specs/2026-05-15-htaccess-beget-design.md).
 
 **Проверка после деплоя:**
 
 ```bash
 curl -I https://alexanderlapygin.com/
-# В ответе должны присутствовать все шесть заголовков из списка выше
+# В ответе должны присутствовать все шесть security-заголовков
+curl -I http://alexanderlapygin.com/
+# 301 на https://alexanderlapygin.com/
+curl -I https://www.alexanderlapygin.com/
+# 301 на https://alexanderlapygin.com/
+curl -I https://alexanderlapygin.com/contact
+# 200 (не 301 на /contact/)
+curl -I https://alexanderlapygin.com/_astro/<hash>.js
+# Cache-Control: public, max-age=31536000, immutable; Content-Encoding: gzip|br
+curl -I https://alexanderlapygin.com/garbage
+# 404; тело — содержимое /404.html
 ```
 
 ---
