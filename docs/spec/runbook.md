@@ -99,6 +99,35 @@ wrangler pages deploy dist --project-name=alexanderlapygin
 
 Кастомные заголовки — файл `public/_headers` (Astro копирует содержимое `public/` в корень `dist/`).
 
+### 2.5. Beget — миграция с существующего сайта
+
+На момент написания на `alexanderlapygin.com` уже работает другой сайт на том же Beget-аккаунте. Прямая замена docroot — недопустима: ошибка в `.htaccess` или деплое уронит живой сайт без отката.
+
+Безопасный паттерн — **параллельный деплой под отдельным хостом, потом cutover одним действием**.
+
+1. **Завести второй сайт в панели Beget** (раздел «Сайты») и привязать к нему staging-хост:
+   - либо служебный технический домен Beget (`<login>.beget.tech` — выдаётся каждому аккаунту автоматически),
+   - либо отдельный поддомен (например `staging.alexanderlapygin.com`) — потребует A/CNAME-записи в DNS, см. §3.
+
+2. **Опубликовать `dist/` на staging-docroot** (FTP/SSH; инструменты — §5.1). Файл `public/.htaccess` идёт вместе со статикой автоматически.
+
+3. **Прогнать верификацию** против staging-хоста (полный список — §6, дополнительно — §4):
+   - `curl -I https://<staging-host>/` — все шесть security-заголовков.
+   - `curl -I http://<staging-host>/` — 301 на HTTPS.
+   - `curl -I https://<staging-host>/contact` — 200 (не 301 на `/contact/`).
+   - `curl -I https://<staging-host>/_astro/<реальный-hash>.js` — `Cache-Control: public, max-age=31536000, immutable`, `Content-Encoding: gzip|br`.
+   - `curl -I https://<staging-host>/garbage` — 404, тело — `/404.html`.
+
+   **Внимание:** правило `www → apex` в `.htaccess` на staging-хосте молча не сработает (имя не матчит `^www\.alexanderlapygin\.com$`) — это ожидаемо, оно активируется только после cutover на боевой домен. Сертификат на staging-хосте принадлежит Beget (для `<login>.beget.tech`) или выпускается отдельно для поддомена — в браузере допустим warning, для `curl`-тестов несущественно.
+
+4. **Снять резервную копию текущего docroot `alexanderlapygin.com`** до любых действий с боевым хостом. FTP/SSH-выкачка в локальный tarball; хранить минимум до завершения миграции, лучше — в двух точках (локально + второе хранилище).
+
+5. **Cutover.** В панели Beget переключить привязку домена `alexanderlapygin.com` (и `www`) на новый docroot одним действием. После переключения — повторно прогнать верификацию, уже против `https://alexanderlapygin.com/` и `https://www.alexanderlapygin.com/` (второй должен дать 301 на apex).
+
+6. **Откат.** Обратное переключение привязки в панели Beget. Если файлы старого сайта были вытерты при cutover — восстановить из tarball'а из шага 4.
+
+После успешного cutover и финальных проверок staging-сайт можно удалить или сохранить как deployment-target для preview-окружений PR (см. spec §9.2).
+
 ---
 
 ## 3. DNS-записи
