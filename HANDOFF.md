@@ -1,55 +1,41 @@
 # HANDOFF
 
 **Date:** 2026-05-15
-**Branch:** `main` (есть uncommitted changes — весь скаффолд прототипа ещё не в git) — последний коммит `11a9680` docs: initial spec, decisions, runbook for alexanderlapygin.com (2026-05-15)
+**Branch:** `main` (опережает `origin/main` на 8 коммитов; в рабочем дереве — только `M HANDOFF.md`) — последний коммит `9cbbe04` docs(runbook): add §2.5 — миграция с существующего сайта на Beget (2026-05-15)
 
-Проект на стадии «прототип». До этой сессии в репозитории была только документация (`docs/spec/{spec.md,decisions.md,runbook.md}`). В этой сессии собран рабочий каркас Astro 6 + статика + контент-коллекции и впервые задеплоен на Cloudflare Pages.
+Проект в состоянии «прототип в коде + `public/.htaccess` под Beget + спека и процедура миграции с живого сайта». Деплой на Beget ещё не делался. Хостинг — Beget (российский, ст. 12 152-ФЗ не активируется). На `alexanderlapygin.com` сейчас работает другой сайт того же аккаунта Beget — миграция через staging-хост и атомарный cutover, процедура в `runbook.md` §2.5.
 
 ## Session 2026-05-15
 
 ### Что сделано
 
-- Поднят каркас Astro 6.3.3 + TypeScript (strict) + Tailwind v4 (через PostCSS — см. ниже) + содержимое из spec §3.1.
-- Все 9 RU и 9 EN маршрутов отдают 200 локально и в проде, неизвестные — 404.
-- Темы (светлая/тёмная) с инлайновым `theme-init` в `<head>` (без мигания), переключатель и `localStorage`.
-- I18n: типизированные словари `src/i18n/{ru,en}.ts`, `lang`, `hreflang` (включая `x-default → RU`), `og:locale[:alternate]`.
-- Content collections для `posts`, `projects-{client,personal,saas}`, `solutions` + образцы по 1–2 на коллекцию.
-- Контактная форма — UI с клиентской валидацией, honeypot, согласием. **Mock-отправка** (фиктивный `setTimeout`); реального backend нет.
-- README с инструкцией запуска и явным списком «чего нет».
-- Прототип задеплоен на **https://alexanderlapygin-prototype.pages.dev** (Cloudflare Pages, проект `alexanderlapygin-prototype`, branch `main`).
+- Зафиксирован дизайн `.htaccess` для Beget: [`docs/superpowers/specs/2026-05-15-htaccess-beget-design.md`](docs/superpowers/specs/2026-05-15-htaccess-beget-design.md). Ключевые решения: apex как канонический хост, HTTPS-редирект через `.htaccess` (не в панели Beget), `<IfModule>` только вокруг некритичных модулей (`mod_deflate`/`mod_brotli` — обёрнуты; `mod_rewrite`/`mod_headers` — без обёрток, чтобы их отсутствие было громким 500, а не молчаливой деградацией), path-based long-cache для `/_astro/` и `/fonts/` через `SetEnvIf` (не по расширению — это защищает `/favicon.ico` от случайного immutable-кэша), `DirectorySlash Off` + внутренний rewrite под `trailingSlash:'never'`, CSP — версия runbook §4 без webvisor (decisions §5.2).
+- План реализации: [`docs/superpowers/plans/2026-05-15-htaccess-beget.md`](docs/superpowers/plans/2026-05-15-htaccess-beget.md).
+- Создан `public/.htaccess` (76 строк). `npm run build` — 20 страниц за 828 ms; файл идентичен в `public/` и `dist/`. `npm run check` — 0 errors / 0 warnings (1 hint про deprecated `z` в `astro:content` — был и до сессии, не регрессия). `httpd -t` дал `Syntax OK` (проверка системного конфига, не нашего файла — реальная валидация — `curl -I` после деплоя).
+- `runbook.md` §4 переписан: блок Cloudflare `_headers` заменён на ссылку на `public/.htaccess` как единственный источник правды. Добавлен расширенный список `curl -I`-проверок (6 штук).
+- `runbook.md` §2.5 добавлен — процедура миграции с существующего сайта на Beget: параллельный деплой на staging-хост (`<login>.beget.tech` или отдельный поддомен), верификация по списку §6, бэкап текущего docroot tarball'ом до любых действий с боевым хостом, cutover одним переключением привязки домена в панели Beget, обратное переключение как откат.
 
 ### Коммиты этой сессии
 
-Нет — весь сделанный код **остался в рабочем дереве и НЕ закоммичен**. Пользователь сам решит, когда коммитить.
+- `c278592` docs: spec for public/.htaccess on Beget
+- `91118eb` docs: implementation plan for public/.htaccess
+- `7c2b3ee` feat(deploy): add public/.htaccess for Beget Apache hosting
+- `9cbbe04` docs(runbook): add §2.5 — миграция с существующего сайта на Beget
 
 ### Локальное состояние (не в git)
 
-- **Не в git** (см. `git status`): `.gitignore` (M), `README.md`, `astro.config.mjs`, `package.json`, `package-lock.json`, `postcss.config.mjs`, `tsconfig.json`, весь `src/` со страницами/компонентами/коллекциями.
-- **`node_modules/`** установлен (`npm install` выполнен). 5 moderate уязвимостей в transitive dev-deps (`yaml-language-server` через `@astrojs/check`) — не попадают в продакшен-бандл, см. README.
-- **`dist/`** содержит свежий статический билд (использовался для деплоя).
-- **`.superpowers/brainstorm/`** — артефакты визуального компаньона (визуал-сервер был запущен в начале сессии и завершён). Каталог уже в `.gitignore`.
-- **Cloudflare**: создан Pages-проект `alexanderlapygin-prototype` под аккаунтом `alexanderlapygin@gmail.com`. Wrangler залогинен (OAuth-токен в `~/Library/Preferences/.wrangler/config/`).
-- **Dev-сервер на :4321** не запущен.
-
-### Внешние эффекты
-
-- **Cloudflare Pages**: создан публичный проект и опубликован билд по URL **https://alexanderlapygin-prototype.pages.dev** — доступен любому в интернете. Заказчику этот URL уже можно отправлять.
-
-### Решения по ходу сессии (rationale пока не растворился)
-
-- **Tailwind через PostCSS, не через `@tailwindcss/vite`.** Сборка с плагином `@tailwindcss/vite@4.3.0` падала: `Missing field 'tsconfigPaths' on BindingViteResolvePluginConfig.resolveOptions` — несовместимость с Vite 8 / rolldown внутри Astro 6. Перешёл на `@tailwindcss/postcss@4.3.0` + `postcss.config.mjs` — это стандартный путь, не зависит от мажорной версии Vite.
-- **`slug:` убран из frontmatter всех материалов.** Astro Content Collections трактует `slug` в frontmatter как override `entry.id`, поэтому `posts/ru/foo.md` и `posts/en/foo.md` коллапсировались в одну запись и EN-пост терялся. Slug теперь выводится из `entry.id` через `pageSlug()` (см. `src/lib/slug.ts`).
-- **Хостинг прототипа — Cloudflare Pages.** Заказчик ещё не видит сайт, форма пока mock и PII не собирает → ст. 12 152-ФЗ не применима для демо. Боевой деплой пойдёт на российский VPS по spec §10.4 / runbook §2.1 — это отдельный шаг.
-- **Деплой без CI.** Прототип-уровень. Команда для перезаливки после правок — в README, в разделе про деплой.
+- **`.env`** в корне (gitignored): `SITE_URL=https://alexanderlapygin.com`, `PUBLIC_TELEGRAM_USERNAME=alexanderlapygin`, `PUBLIC_CONTACT_EMAIL=alapygin@yandex.ru`, `PUBLIC_METRIKA_ID=` (пусто).
+- **HANDOFF.md** — этот файл, обновлён в текущей сессии, статус в рабочем дереве `M`. Не закоммичен по дизайну (см. skill `/handoff`).
+- **Cloudflare Pages**: прототип на https://alexanderlapygin-prototype.pages.dev — содержимое всё ещё от коммита `614681f` (старая mock-форма с честным backend-сабмитом и чекбоксом согласия). Деплоев в этой сессии не было; новые 4 коммита (включая `.htaccess`) в прототипе пока не видны.
+- **Beget**: на `alexanderlapygin.com` работает старый сайт того же аккаунта. Новый сайт никуда не выкатывался — `dist/.htaccess` существует только локально.
+- **Dev-сервер** не запущен. `node_modules/` от предыдущей сессии.
+- **Внешних эффектов** (рассылок, сообщений в чужие сервисы, изменений DNS, push в `origin`) — не было.
 
 ### Осталось недоделанным
 
-- **Не закоммичено** — стоит сделать первый коммит со скаффолдом, прежде чем продолжать.
-- **Реальная контактная форма** (SMTP-доставка) — следующий очевидный шаг по spec §5: `@astrojs/node` адаптер, `nodemailer`, валидация на сервере, экранирование, `shared/failed/` fallback. На Cloudflare Pages не работает — это статический хост, нужен либо переход на Cloudflare Workers, либо боевой VPS-деплой. Решение пока не принято.
-- **Текст `/privacy`** — заглушка. Реальный текст готовит автор (юридическая часть).
-- **Аналитика** (Метрика, cookie-баннер, целевые события) — не подключена.
-- **RSS, sitemap, robots.txt, schema.org JSON-LD** — не сгенерированы.
-- **OG-картинки на сборке** (универсальный шаблон с подставляемым заголовком) — не реализованы.
-- **EN-контент** — наполнен только структурно (один пример поста); полное наполнение по триггеру spec §13.3.
-- **Unit-тесты на критичные утилиты** (HTML-экранирование, CRLF-санитизация, валидация, slug, время чтения) — не написаны. Появятся вместе с серверной формой.
-- **Боевая инфраструктура** (nginx + systemd + certbot + logrotate + DNS + DMARC) — по runbook §2-§9, не начата.
+1. **Параллельный деплой `dist/` на Beget по runbook §2.5.** Завести второй сайт в панели Beget, привязать staging-хост (`<login>.beget.tech` или поддомен), загрузить `dist/` (FTP/SSH), прогнать 6 `curl -I`-верификаций. Только после успеха — снять tarball-бэкап текущего docroot и переключить привязку apex-домена. Обратное переключение — процедура отката.
+2. **`PUBLIC_METRIKA_ID`** не заведён. Создать счётчик в Яндекс Метрике, завести цели (`form_submit_telegram`, `form_validation_error`, `mailto_click`, `telegram_direct_click` и пр., список — runbook §13), положить ID в `.env`. Сейчас `trackGoal` — no-op. CSP в `.htaccess` уже разрешает домены Метрики.
+3. **Уведомление в РКН по ст. 22 152-ФЗ.** Подать **до публичного cutover** (т. е. до момента, когда `alexanderlapygin.com` начнёт принимать обращения через нашу форму). Ст. 12 НЕ требуется (хостинг в РФ — Beget).
+4. **Согласование runbook §4 и §14.** В §14 длинный CSP всё ещё содержит webvisor-домены (`mc.webvisor.org`, `mc.webvisor.com`); в §4 и в `public/.htaccess` их нет (webvisor выключен, decisions §5.2). Привести §14 к §4 — отдельный коммит.
+5. **Перенастройка деплоя с Cloudflare на Beget.** Текущий прод-инструмент в `devDependencies` — `wrangler` (для Cloudflare). Для Beget нужна FTP/SSH-публикация `dist/`. GitHub Actions workflow из spec §9.2 ещё не реализован.
+6. **Push 8 коммитов в `origin/main` — придержан осознанно.** Прототип на Cloudflare Pages может быть привязан к `origin/main` с auto-deploy и выкатить «полуфабрикат» (с `.htaccess`, но без Метрики и до РКН-уведомления). Push — после Beget-staging-деплоя, Метрики и РКН.
