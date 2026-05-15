@@ -262,6 +262,59 @@ wrangler pages deploy dist --project-name=alexanderlapygin
 
 После успешного cutover и стабильной работы в течение 48 часов — `html-old-${RELEASE}` можно удалить. Последние 2-3 каталога `releases/` сохранять как точки быстрого отката контента (`ln -sfn releases/<previous> html` — переключение за миллисекунды, без правки vhost'а). `/var/www/alexanderlapygin.com/legacy/` живёт отдельно, его release-ротация не трогает.
 
+### 2.6. Stage-деплой (`stage.alexanderlapygin.com`)
+
+Stage живёт на том же VPS (`84.54.29.190`), своя release-цепочка
+(`stage-releases/<TS>/` + симлинк `stage-html`), не пересекается с prod.
+SBP-backend — отдельный инстанс на порту 3001 (юнит `sbp-backend-stage.service`).
+
+Полная архитектура и обоснование развилок: `docs/superpowers/specs/2026-05-16-stage-subdomain-design.md`.
+
+#### Деплой нового билда на stage (5 шагов, повторяемая процедура)
+
+```bash
+# 1. Локально: чистый build
+npm run build
+
+# 2. Локально: tarball
+RELEASE=$(date -u +%Y%m%dT%H%M%SZ)
+tar -czf /tmp/stage-${RELEASE}.tar.gz -C dist .
+
+# 3. На VPS: создать release-директорию, развернуть
+ssh root@84.54.29.190 "install -d -o www-data -g www-data /var/www/alexanderlapygin.com/stage-releases/${RELEASE}"
+scp /tmp/stage-${RELEASE}.tar.gz root@84.54.29.190:/tmp/
+ssh root@84.54.29.190 "tar -xzf /tmp/stage-${RELEASE}.tar.gz -C /var/www/alexanderlapygin.com/stage-releases/${RELEASE}/ && chown -R www-data:www-data /var/www/alexanderlapygin.com/stage-releases/${RELEASE}/"
+
+# 4. Atomic switch симлинка stage-html
+ssh root@84.54.29.190 "cd /var/www/alexanderlapygin.com && ln -sfn stage-releases/${RELEASE} stage-html.new && mv -T stage-html.new stage-html"
+
+# 5. Smoke
+curl -sSI https://stage.alexanderlapygin.com/ | head -20      # 200 + X-Robots-Tag + Cache-Control
+curl -s     https://stage.alexanderlapygin.com/ | grep -c '<html'   # ≥1
+```
+
+`nginx -s reload` не нужен — vhost root указывает на симлинк, nginx читает таргет при каждом запросе.
+
+`mv -T` — атомарная замена симлинка через POSIX rename.
+
+#### Retention
+
+Хранить 3 последних релиза:
+
+```bash
+ssh root@84.54.29.190 "cd /var/www/alexanderlapygin.com/stage-releases && ls -1t | tail -n +4 | xargs -r rm -rf"
+```
+
+#### Smoke-набор для stage
+
+```bash
+curl -sSI https://stage.alexanderlapygin.com/             | grep -iE 'HTTP|x-robots|cache-control'
+curl -sSI https://stage.alexanderlapygin.com/contact/     | grep -iE 'HTTP|cache-control'
+curl -sSI https://stage.alexanderlapygin.com/_astro/...   # любой ассет
+curl -sSI https://stage.alexanderlapygin.com/showcase/    # legacy frontend
+curl -sS  https://stage.alexanderlapygin.com/api/health 2>&1 | head -5
+```
+
 ---
 
 ## 3. DNS-записи
