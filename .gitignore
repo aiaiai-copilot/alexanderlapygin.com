@@ -8,6 +8,9 @@ dist/
 .astro/
 .cache/
 
+# Локальные бэкапы (tarball'ы pre-cutover, см. HANDOFF.md)
+backups/
+
 # Env
 .env
 .env.local
