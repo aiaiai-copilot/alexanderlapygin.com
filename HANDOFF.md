@@ -15,9 +15,68 @@
 
 Backup pre-D1 версии sites-available: `/root/alexanderlapygin.com.conf.pre-d1-20260515T233139Z.bak` на VPS. Backup активного sites-enabled при будущем upgrade — сделать ОТДЕЛЬНО (cp в `/root/sites-enabled-alexanderlapygin.com.conf.pre-upgrade-...bak`).
 
+### План апгрейда prod-vhost'а
+
+Два пути — выбрать в начале сессии.
+
+**Путь A — полный апгрейд (предпочтительно):** sites-enabled → симлинк на репо-версию. Дотягивает прод до stage-парити: security headers, CSP, Cache-Control, X-Robots-Tag, /404.html handler, D1-фикс. Главный риск — CSP может заблокировать inline-скрипты/стили старого React.
+
+1. **Pre-deploy CSP-аудит React-сайта** (без изменения VPS):
+   - Открыть `https://alexanderlapygin.com/` в Chrome → DevTools → Console.
+   - **Симулировать нашу CSP временно**: вкладка Network → Reload с включённым `X-Custom-CSP` через расширение типа "Modify Headers" ИЛИ скопировать CSP-строку из `deploy/nginx/snippets/alexanderlapygin-security-headers.conf` и подложить через DevTools' Settings → Experiments → "Report-Only CSP" (если есть).
+   - Альтернатива быстрее: `curl -s https://stage.alexanderlapygin.com/ | grep -i content-security-policy` → взять stage CSP как образец; сравнить с тем, что есть на prod (там сейчас CSP нет → всё разрешено).
+   - Пройти по основным страницам React-сайта: главная, contact, projects, blog, about. В DevTools Console искать violations: `Refused to ... because it violates the following Content Security Policy directive: ...`.
+   - **Если violations найдены** — выбор: (а) дописать в snippet (например `'unsafe-inline'` для script-src — ослабляет защиту, не лучший вариант), (б) добавить sha256-хеши инлайна в `script-src` / `style-src`, (в) убрать инлайн из React-сборки. Без resolution — не катить.
+   - **Если violations нет** — путь свободен.
+
+2. **Backup активного sites-enabled** (это не то же, что backup репо-версии):
+   ```bash
+   ssh root@84.54.29.190 'cp /etc/nginx/sites-enabled/alexanderlapygin.com.conf /root/sites-enabled-alexanderlapygin.com.conf.pre-upgrade-$(date -u +%Y%m%dT%H%M%SZ).bak && ls -la /root/sites-enabled-alexanderlapygin.com.conf.pre-upgrade-*.bak'
+   ```
+
+3. **Замена regular file → симлинк:**
+   ```bash
+   ssh root@84.54.29.190 'rm /etc/nginx/sites-enabled/alexanderlapygin.com.conf && ln -s ../sites-available/alexanderlapygin.com.conf /etc/nginx/sites-enabled/alexanderlapygin.com.conf && ls -la /etc/nginx/sites-enabled/alexanderlapygin.com.conf && nginx -t'
+   ```
+   Ожидаем: симлинк виден, `test is successful`.
+
+4. **Reload:**
+   ```bash
+   ssh root@84.54.29.190 'nginx -s reload'
+   ```
+
+5. **Post-deploy smoke** (curl сначала, browser потом):
+   ```bash
+   curl -sSI https://alexanderlapygin.com/         | grep -iE 'HTTP|cache-control|x-robots|strict-transport|content-security'
+   curl -sSI https://alexanderlapygin.com/contact/ | grep -iE 'cache-control'
+   curl -sSI https://alexanderlapygin.com/showcase/payments/sbp/ | grep -iE 'cache-control'
+   curl -sSI https://alexanderlapygin.com/_astro/ 2>&1 | grep -iE 'cache-control'    # должен остаться immutable если /_astro/ есть
+   curl -sSI https://alexanderlapygin.com/api/                                       # должен остаться no-cache,no-store
+   ```
+   Затем браузер: открыть главную, contact, любой проект → DevTools Console → НИ ОДНОЙ CSP violation. Если есть — немедленный rollback (шаг 6).
+
+6. **Rollback при проблемах:**
+   ```bash
+   ssh root@84.54.29.190 'rm /etc/nginx/sites-enabled/alexanderlapygin.com.conf && cp /root/sites-enabled-alexanderlapygin.com.conf.pre-upgrade-<TS>.bak /etc/nginx/sites-enabled/alexanderlapygin.com.conf && nginx -t && nginx -s reload'
+   ```
+   Reverts активный конфиг к pre-upgrade state за секунды.
+
+**Путь B — минимальный D1 patch** (если CSP-аудит трудоёмкий или браузерная проверка недоступна): добавить только `add_header Cache-Control "no-cache" always;` в текущий активный sites-enabled, не трогая остального. Не симметрично с репо, но безопасно.
+
+```bash
+ssh root@84.54.29.190 'cp /etc/nginx/sites-enabled/alexanderlapygin.com.conf /root/sites-enabled-alexanderlapygin.com.conf.pre-d1minimal-$(date -u +%Y%m%dT%H%M%SZ).bak'
+# Затем вручную через ssh + sed/редактор добавить add_header в server-block,
+# после `index  index.html index.htm;` (line ~5 в текущем активном файле).
+ssh root@84.54.29.190 'nginx -t && nginx -s reload'
+# Smoke:
+curl -sSI https://alexanderlapygin.com/ | grep -i cache-control   # должен появиться no-cache
+```
+
+После пути B — путь A всё ещё открыт как «следующая итерация».
+
 ### Осталось недоделанным
 
-1. **Полный апгрейд prod-vhost'а** (или минимальный D1 patch в активный sites-enabled). Развилки и план — выше.
+1. **Прод-vhost upgrade** (путь A или B выше). Принимать решение в начале следующей сессии.
 2. **`PUBLIC_METRIKA_ID`** не заведён → `trackGoal` no-op. Цели: `form_submit_telegram`, `form_validation_error`, `mailto_click`, `telegram_direct_click` (runbook §13). CSP уже разрешает домены Метрики.
 3. **Уведомление в РКН по ст. 22 152-ФЗ** — подать ДО публичного cutover'а stage→prod (когда форма начнёт принимать обращения).
 4. **Verify firewall blocks external :3000 и :3001** — оба backend'а биндят 0.0.0.0. Проверить с другой машины: `curl --connect-timeout 5 http://84.54.29.190:3001/` → должен быть refused/timeout.
