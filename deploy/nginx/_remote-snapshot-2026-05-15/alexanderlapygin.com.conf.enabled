@@ -1,0 +1,72 @@
+server {
+    server_name  alexanderlapygin.com  www.alexanderlapygin.com;
+
+    root   /var/www/alexanderlapygin.com/html;
+    index  index.html index.htm;
+
+    location ^~ /.well-known/acme-challenge/ {
+        default_type "text/plain";
+        root /var/www/alexanderlapygin.com/html;
+        allow all;
+    }
+
+    # редирект всего SPA на index.html
+
+    location ^~ /showcase/payments/sbp/assets/ {
+        try_files $uri =404;
+    }
+	
+	# Backend API для SBP Payment Demo
+	location ^~ /api/ {
+		proxy_pass http://localhost:3000/;
+		proxy_http_version 1.1;
+
+		# Заголовки
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+
+		# Таймауты
+		proxy_connect_timeout 60s;
+		proxy_send_timeout 60s;
+		proxy_read_timeout 60s;
+
+		# Отключить кэширование API
+		add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+	}
+	
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # сжатие
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript
+               text/xml application/xml application/xml+rss text/javascript;
+
+    listen [::]:443 ssl; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/alexanderlapygin.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/alexanderlapygin.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+}
+server {
+    if ($host = www.alexanderlapygin.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = alexanderlapygin.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80;
+    listen [::]:80;
+    server_name  alexanderlapygin.com  www.alexanderlapygin.com;
+    return 404; # managed by Certbot
+}	

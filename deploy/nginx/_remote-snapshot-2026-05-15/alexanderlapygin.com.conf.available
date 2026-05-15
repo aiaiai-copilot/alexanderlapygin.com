@@ -1,0 +1,25 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name  alexanderlapygin.com  www.alexanderlapygin.com;
+
+    root   /var/www/alexanderlapygin.com/html;
+    index  index.html index.htm;
+
+    location ^~ /.well-known/acme-challenge/ {
+        add_header X-Debug-Path $request_filename always;
+        default_type "text/plain";
+        root /var/www/alexanderlapygin.com/html;
+        allow all;
+    }
+
+    # редирект всего SPA на index.html
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # сжатие
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript
+               text/xml application/xml application/xml+rss text/javascript;
+}
