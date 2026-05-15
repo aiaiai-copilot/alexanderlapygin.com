@@ -1,0 +1,24 @@
+# Local tooling
+.claude/
+*.stackdump
+
+# Node / Astro (для будущего кода)
+node_modules/
+dist/
+.astro/
+.cache/
+
+# Env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp
