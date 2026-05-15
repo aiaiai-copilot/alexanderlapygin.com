@@ -107,6 +107,51 @@ wrangler pages deploy dist --project-name=alexanderlapygin
 
 Все шаги — под `root@84.54.29.190` по SSH. Дальше `RELEASE=$(date -u +%Y%m%dT%H%M%SZ)` для уникальной отметки релиза.
 
+На VPS уже работает не только корневой React-сайт, но и витрина типовых решений под `/showcase/` (три Vite-SPA: `payments/sbp/`, `oauth/simplest/`, `telegram-bot/messaging/`), плюс Node-бэкенд для SBP-демо — systemd-юнит `sbp-backend.service`, слушает `127.0.0.1:3000`, `WorkingDirectory` указан внутри docroot'а (`/var/www/alexanderlapygin.com/html/showcase/payments/sbp/backend`). Атомарный switch `html`-симлинка сломает этот путь, поэтому **перед первым cutover** showcase выносится в стабильный каталог `legacy/`. Новый nginx-конфиг (`deploy/nginx/alexanderlapygin.com.conf`) уже добавил locations `^~ /showcase/` (root → `legacy`) и `^~ /api/` (proxy → `127.0.0.1:3000`).
+
+0. **(Только при первом cutover) Вынести showcase из docroot в `legacy/` и переконфигурировать `sbp-backend.service`.** На VPS:
+
+   ```bash
+   # Создать legacy-каталог и скопировать showcase (preserve perms/timestamps/ownership).
+   # cp -a, НЕ mv: html/showcase/ остаётся как часть rollback-плана и попадёт в tarball шага 4.
+   mkdir -p /var/www/alexanderlapygin.com/legacy
+   cp -a /var/www/alexanderlapygin.com/html/showcase \
+         /var/www/alexanderlapygin.com/legacy/
+
+   # Бэкап текущего systemd-юнита (для отката шага 0, не cutover'а).
+   cp /etc/systemd/system/sbp-backend.service \
+      /root/sbp-backend.service.pre-cutover-${RELEASE}.bak
+
+   # Переписать WorkingDirectory и EnvironmentFile на legacy/.
+   # Оба значения содержат префикс /var/www/alexanderlapygin.com/html/showcase
+   # — sed по литеральному префиксу заменяет на legacy.
+   sed -i 's|/var/www/alexanderlapygin.com/html/showcase|/var/www/alexanderlapygin.com/legacy/showcase|g' \
+       /etc/systemd/system/sbp-backend.service
+
+   # Применить.
+   systemctl daemon-reload
+   systemctl restart sbp-backend.service
+   systemctl status sbp-backend.service --no-pager | head -15
+   ```
+
+   Проверки:
+   - `systemctl status sbp-backend.service` — `active (running)`, PID свежий.
+   - `curl -fsS --max-time 5 -o /dev/null -w "localhost:3000 → HTTP %{http_code}\n" http://127.0.0.1:3000/` — ожидаем `200` (или код, который бэкенд возвращает на root path).
+   - `curl -fsSI --max-time 5 https://alexanderlapygin.com/api/ | head -3` — публичный proxy через старый vhost ещё работает, ожидаем `200`. На этом этапе мы только починили путь systemd-юнита, vhost менять начнём с шага 1.
+
+   **Зачем шаг 0 отдельно от cutover'а:** systemd-юнит `sbp-backend.service` имеет `WorkingDirectory` и `EnvironmentFile` внутри docroot. После atomic-switch'а `html → releases/${RELEASE}` (шаг 5c) эти пути сломаются — текущий процесс продолжит работать через open fd, но любой `systemctl restart` или OOM-перезапуск его положит. Вынос в `legacy/` развязывает backend от release-дерева Astro.
+
+   **Откат шага 0 (если бэкенд лёг после миграции, не зависит от cutover'а):**
+
+   ```bash
+   cp /root/sbp-backend.service.pre-cutover-${RELEASE}.bak \
+      /etc/systemd/system/sbp-backend.service
+   systemctl daemon-reload && systemctl restart sbp-backend.service
+   # legacy/showcase можно оставить или удалить — html/showcase/ на месте, юнит снова работает оттуда.
+   ```
+
+   На последующих deploy'ях шаг 0 **пропускается** — showcase уже в legacy/, юнит уже корректно настроен. Деплой делает только release-switch для Astro.
+
 1. **Залить новый build в release-каталог.** На VPS:
 
    ```bash
@@ -213,7 +258,9 @@ wrangler pages deploy dist --project-name=alexanderlapygin
    nginx -t && nginx -s reload
    ```
 
-После успешного cutover и стабильной работы в течение 48 часов — `html-old-${RELEASE}` можно удалить. Последние 2-3 каталога `releases/` сохранять как точки быстрого отката контента (`ln -sfn releases/<previous> html` — переключение за миллисекунды, без правки vhost'а).
+   **Что НЕ откатывается при откате cutover'а:** `/var/www/alexanderlapygin.com/legacy/showcase/` и правки `sbp-backend.service` (шаг 0). Они независимы от Astro release-switching. После отката cutover'а старый vhost снова сервит `/showcase/` из `html/showcase/` (где showcase ещё лежит — мы делали `cp -a`, не `mv`); `legacy/showcase/` становится временно неиспользуемым контентом, но бэкенд продолжает читать оттуда (что корректно). Откат шага 0 — отдельная процедура, описана в самом шаге 0; делать его только если SBP-бэкенд лёг от миграции, не как часть cutover-rollback'а.
+
+После успешного cutover и стабильной работы в течение 48 часов — `html-old-${RELEASE}` можно удалить. Последние 2-3 каталога `releases/` сохранять как точки быстрого отката контента (`ln -sfn releases/<previous> html` — переключение за миллисекунды, без правки vhost'а). `/var/www/alexanderlapygin.com/legacy/` живёт отдельно, его release-ротация не трогает.
 
 ---
 
