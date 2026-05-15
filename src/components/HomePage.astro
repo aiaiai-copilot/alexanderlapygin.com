@@ -1,0 +1,155 @@
+---
+import { localizedPath, t, type Locale } from "~/i18n";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const dict = t(locale);
+---
+
+<section class="mx-auto max-w-6xl px-4 md:px-6 pt-16 md:pt-24 pb-12 md:pb-20">
+  <div class="grid md:grid-cols-[auto_1fr] gap-8 items-center">
+    <div
+      aria-hidden="true"
+      class="w-24 h-24 md:w-32 md:h-32 rounded-full flex items-center justify-center text-3xl md:text-4xl font-semibold"
+      style="background-color: var(--color-bg-elev); color: var(--color-text-muted); border: 1px solid var(--color-border);"
+    >
+      {locale === "ru" ? "АЛ" : "AL"}
+    </div>
+    <div>
+      <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
+        {dict.home.heroTitle}
+      </h1>
+      <p class="mt-4 text-lg md:text-xl max-w-2xl leading-relaxed" style="color: var(--color-text-muted);">
+        {dict.home.heroSubtitle}
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="mx-auto max-w-6xl px-4 md:px-6 pb-12">
+  <div
+    class="rounded-xl p-6 md:p-8 border"
+    style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
+  >
+    <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
+      {dict.home.philosophyTitle}
+    </div>
+    <p class="text-lg leading-relaxed" style="color: var(--color-text);">
+      {dict.home.philosophyBody}
+    </p>
+  </div>
+</section>
+
+<section class="mx-auto max-w-6xl px-4 md:px-6 py-12 md:py-16">
+  <h2 class="text-2xl md:text-3xl font-semibold tracking-tight mb-8" style="color: var(--color-text);">
+    {dict.home.advantagesTitle}
+  </h2>
+  <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+    {dict.home.advantages.map((a) => (
+      <div
+        class="rounded-lg p-5 border h-full"
+        style="background-color: var(--color-bg); border-color: var(--color-border);"
+      >
+        <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">
+          {a.title}
+        </h3>
+        <p class="text-sm leading-relaxed" style="color: var(--color-text-muted);">
+          {a.body}
+        </p>
+      </div>
+    ))}
+  </div>
+</section>
+
+<section class="mx-auto max-w-6xl px-4 md:px-6 py-12 md:py-16">
+  <div class="flex items-baseline justify-between mb-8 gap-4 flex-wrap">
+    <h2 class="text-2xl md:text-3xl font-semibold tracking-tight" style="color: var(--color-text);">
+      {dict.home.featuredProjectsTitle}
+    </h2>
+    <a
+      href={localizedPath(locale, "/projects")}
+      class="text-sm hover:underline"
+      style="color: var(--color-accent);"
+    >
+      {dict.home.featuredProjectsLink} →
+    </a>
+  </div>
+  <div class="grid md:grid-cols-3 gap-4 md:gap-6">
+    {[1, 2, 3].map((i) => (
+      <article
+        class="rounded-lg p-5 border h-full"
+        style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
+      >
+        <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
+          {locale === "ru" ? "Клиентский проект" : "Client project"}
+        </div>
+        <h3 class="font-semibold text-lg mb-2" style="color: var(--color-text);">
+          {locale === "ru" ? `Пример проекта ${i}` : `Sample project ${i}`}
+        </h3>
+        <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
+          {locale === "ru"
+            ? "Краткое описание задачи и результата. Сюда подтянутся реальные карточки из коллекции."
+            : "Short description of the brief and outcome. Real cards will be pulled from the collection."}
+        </p>
+        <div class="flex flex-wrap gap-1.5">
+          {["Astro", "TypeScript", "Postgres"].map((tag) => (
+            <span
+              class="text-xs px-2 py-0.5 rounded-full"
+              style="background-color: var(--color-bg-muted); color: var(--color-text-muted);"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<section class="mx-auto max-w-6xl px-4 md:px-6 py-12 md:py-16">
+  <div class="flex items-baseline justify-between mb-8 gap-4 flex-wrap">
+    <h2 class="text-2xl md:text-3xl font-semibold tracking-tight" style="color: var(--color-text);">
+      {dict.home.latestPostsTitle}
+    </h2>
+    <a
+      href={localizedPath(locale, "/blog")}
+      class="text-sm hover:underline"
+      style="color: var(--color-accent);"
+    >
+      {dict.home.latestPostsLink} →
+    </a>
+  </div>
+  <div class="grid md:grid-cols-3 gap-4 md:gap-6">
+    {[1, 2, 3].map((i) => (
+      <a
+        href={localizedPath(locale, "/blog")}
+        class="rounded-lg p-5 border block hover:bg-[var(--color-bg-elev)] transition-colors"
+        style="border-color: var(--color-border);"
+      >
+        <div class="text-xs mb-2" style="color: var(--color-text-muted);">
+          2026-05-{String(10 + i).padStart(2, "0")} · 5 {dict.blog.minutesShort}
+        </div>
+        <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">
+          {locale === "ru" ? `Заголовок публикации ${i}` : `Sample post title ${i}`}
+        </h3>
+        <p class="text-sm leading-relaxed" style="color: var(--color-text-muted);">
+          {locale === "ru"
+            ? "Краткое описание поста. Реальные данные подтянутся из контент-коллекции."
+            : "Short post description. Real data will come from the content collection."}
+        </p>
+      </a>
+    ))}
+  </div>
+</section>
+
+<section class="mx-auto max-w-6xl px-4 md:px-6 py-16 text-center">
+  <a
+    href={localizedPath(locale, "/contact")}
+    class="inline-flex items-center px-6 py-3 rounded-lg text-base font-semibold transition-colors hover:opacity-90"
+    style="background-color: var(--color-accent); color: var(--color-accent-text);"
+  >
+    {dict.home.cta}
+  </a>
+</section>

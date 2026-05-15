@@ -1,0 +1,105 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import { localizedPath, t, type Locale } from "~/i18n";
+
+interface Props {
+  locale: Locale;
+  entry: CollectionEntry<"projects-client">;
+}
+const { locale, entry } = Astro.props;
+const dict = t(locale);
+const { Content } = await render(entry);
+
+const metricLabels: Record<string, string> = locale === "ru"
+  ? { phase: "Этап", type: "Тип", access: "Доступ", status: "Статус" }
+  : { phase: "Phase", type: "Type", access: "Access", status: "Status" };
+
+const metrics = [
+  ["phase", entry.data.phase],
+  ["type", entry.data.type],
+  ["access", entry.data.access],
+  ["status", entry.data.status],
+] as const;
+---
+
+<article class="mx-auto max-w-3xl px-4 md:px-6 pt-12 md:pt-16 pb-16">
+  <a
+    href={localizedPath(locale, "/projects")}
+    class="text-sm hover:underline"
+    style="color: var(--color-accent);"
+  >
+    {dict.projects.backLink}
+  </a>
+
+  <header class="mt-8 mb-8">
+    <h1 class="text-3xl md:text-5xl font-semibold tracking-tight mb-4" style="color: var(--color-text);">
+      {entry.data.title}
+    </h1>
+    <p class="text-lg leading-relaxed" style="color: var(--color-text-muted);">
+      {entry.data.description}
+    </p>
+
+    {entry.data.stack.length > 0 && (
+      <div class="flex flex-wrap gap-1.5 mt-6">
+        {entry.data.stack.map((tag) => (
+          <span class="text-xs px-2.5 py-1 rounded-full" style="background-color: var(--color-bg-muted); color: var(--color-text-muted);">
+            {tag}
+          </span>
+        ))}
+      </div>
+    )}
+
+    {metrics.some(([, v]) => v) && (
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+        {metrics.map(([key, value]) => value ? (
+          <div class="rounded-md p-3 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
+            <div class="text-[10px] uppercase tracking-wider mb-1" style="color: var(--color-text-muted);">
+              {metricLabels[key]}
+            </div>
+            <div class="text-sm font-medium" style="color: var(--color-text);">
+              {value}
+            </div>
+          </div>
+        ) : null)}
+      </div>
+    )}
+  </header>
+
+  {entry.data.features.length > 0 && (
+    <section class="mb-8">
+      <h2 class="text-lg font-semibold mb-3" style="color: var(--color-text);">
+        {locale === "ru" ? "Ключевые возможности" : "Key features"}
+      </h2>
+      <ul class="space-y-1.5 text-base" style="color: var(--color-text);">
+        {entry.data.features.map((f) => <li>· {f}</li>)}
+      </ul>
+    </section>
+  )}
+
+  <div class="post-body" style="color: var(--color-text);">
+    <Content />
+  </div>
+
+  <div class="mt-10 flex flex-wrap gap-3">
+    <a
+      href={entry.data.liveUrl}
+      target="_blank"
+      rel="noopener"
+      class="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors hover:opacity-90"
+      style="background-color: var(--color-accent); color: var(--color-accent-text);"
+    >
+      {dict.projects.open} →
+    </a>
+    {entry.data.repoUrl && (
+      <a
+        href={entry.data.repoUrl}
+        target="_blank"
+        rel="noopener"
+        class="inline-flex items-center px-5 py-2.5 rounded-lg text-sm font-semibold border transition-colors hover:bg-[var(--color-bg-muted)]"
+        style="border-color: var(--color-border); color: var(--color-text);"
+      >
+        {dict.projects.code}
+      </a>
+    )}
+  </div>
+</article>

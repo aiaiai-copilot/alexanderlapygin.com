@@ -1,0 +1,203 @@
+---
+import {
+  alternatePath,
+  bcp47,
+  localizedPath,
+  type Locale,
+} from "~/i18n";
+import { t } from "~/i18n";
+
+interface Props {
+  locale: Locale;
+  currentPath: string;
+}
+const { locale, currentPath } = Astro.props;
+const dict = t(locale);
+const altLocale = locale === "ru" ? "en" : "ru";
+const altUrl = alternatePath(locale, currentPath);
+
+const navItems = [
+  { href: localizedPath(locale, "/"), label: dict.nav.home, match: ["/", "/en"] },
+  { href: localizedPath(locale, "/about"), label: dict.nav.about, match: ["/about", "/en/about"] },
+  { href: localizedPath(locale, "/projects"), label: dict.nav.projects, match: ["/projects", "/en/projects"] },
+  { href: localizedPath(locale, "/solutions"), label: dict.nav.solutions, match: ["/solutions", "/en/solutions"] },
+  { href: localizedPath(locale, "/blog"), label: dict.nav.blog, match: ["/blog", "/en/blog"] },
+  { href: localizedPath(locale, "/contact"), label: dict.nav.contact, match: ["/contact", "/en/contact"] },
+];
+
+function isCurrent(item: { match: string[] }) {
+  const normalized = currentPath.replace(/\/$/, "") || "/";
+  return item.match.some((m) => {
+    if (m === "/" || m === "/en") return normalized === m;
+    return normalized === m || normalized.startsWith(`${m}/`);
+  });
+}
+---
+
+<header
+  class="md:sticky md:top-0 z-30 border-b backdrop-blur"
+  style="background-color: color-mix(in oklab, var(--color-bg) 92%, transparent); border-color: var(--color-border);"
+>
+  <div class="mx-auto max-w-6xl px-4 md:px-6">
+    <div class="flex items-center justify-between gap-4 h-14 md:h-16">
+      <a
+        href={localizedPath(locale, "/")}
+        class="font-semibold tracking-tight text-base md:text-lg"
+        style="color: var(--color-text);"
+      >
+        {dict.meta.siteAuthor}
+      </a>
+
+      <nav aria-label="Primary" class="hidden md:flex items-center gap-1">
+        {navItems.map((item) => (
+          <a
+            href={item.href}
+            class="px-3 py-2 text-sm rounded-md hover:bg-[var(--color-bg-muted)] transition-colors"
+            aria-current={isCurrent(item) ? "page" : undefined}
+            style={isCurrent(item) ? "color: var(--color-text); font-weight: 600;" : "color: var(--color-text-muted);"}
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
+
+      <div class="flex items-center gap-1">
+        <button
+          type="button"
+          data-theme-toggle
+          role="switch"
+          aria-checked="false"
+          aria-label={dict.toggles.themeToToDark}
+          class="p-2 rounded-md hover:bg-[var(--color-bg-muted)] transition-colors"
+          style="color: var(--color-text-muted);"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon-light">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon-dark hidden">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <a
+          href={altUrl}
+          hreflang={bcp47(altLocale)}
+          aria-label={dict.toggles.langSwitchLabel}
+          class="px-2 py-2 rounded-md text-sm font-medium hover:bg-[var(--color-bg-muted)] transition-colors"
+          style="color: var(--color-text-muted);"
+        >
+          {dict.toggles.langSwitchTo}
+        </a>
+
+        <button
+          type="button"
+          id="mobile-menu-button"
+          aria-label={dict.nav.openMenu}
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+          class="md:hidden p-2 rounded-md hover:bg-[var(--color-bg-muted)] transition-colors"
+          style="color: var(--color-text-muted);"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="mobile-menu"
+    class="md:hidden hidden fixed inset-0 z-40 flex-col"
+    style="background-color: var(--color-bg);"
+  >
+    <div class="mx-auto max-w-6xl px-4 w-full">
+      <div class="flex items-center justify-between h-14">
+        <span class="font-semibold tracking-tight" style="color: var(--color-text);">{dict.meta.siteAuthor}</span>
+        <button
+          type="button"
+          id="mobile-menu-close"
+          aria-label={dict.nav.closeMenu}
+          class="p-2 rounded-md"
+          style="color: var(--color-text-muted);"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav aria-label="Mobile" class="mt-6 flex flex-col gap-1">
+        {navItems.map((item) => (
+          <a
+            href={item.href}
+            class="px-3 py-3 text-lg rounded-md"
+            aria-current={isCurrent(item) ? "page" : undefined}
+            style={isCurrent(item) ? "color: var(--color-text); font-weight: 600;" : "color: var(--color-text-muted);"}
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script>
+  import "~/scripts/theme-toggle";
+
+  function syncThemeIcons() {
+    const isDark =
+      document.documentElement.getAttribute("data-theme") === "dark";
+    document.querySelectorAll<HTMLElement>(".theme-icon-light").forEach((el) => {
+      el.classList.toggle("hidden", isDark);
+    });
+    document.querySelectorAll<HTMLElement>(".theme-icon-dark").forEach((el) => {
+      el.classList.toggle("hidden", !isDark);
+    });
+  }
+  syncThemeIcons();
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-theme-toggle]")
+    .forEach((btn) => btn.addEventListener("click", () => setTimeout(syncThemeIcons, 0)));
+
+  // Mobile menu
+  const button = document.getElementById("mobile-menu-button");
+  const menu = document.getElementById("mobile-menu");
+  const closeBtn = document.getElementById("mobile-menu-close");
+  const MD = 768;
+
+  function openMenu() {
+    if (!menu || !button) return;
+    menu.classList.remove("hidden");
+    menu.classList.add("flex");
+    button.setAttribute("aria-expanded", "true");
+    document.body.style.overflow = "hidden";
+    const firstLink = menu.querySelector<HTMLAnchorElement>("nav a");
+    firstLink?.focus();
+  }
+  function closeMenu() {
+    if (!menu || !button) return;
+    menu.classList.add("hidden");
+    menu.classList.remove("flex");
+    button.setAttribute("aria-expanded", "false");
+    document.body.style.overflow = "";
+    button.focus();
+  }
+
+  button?.addEventListener("click", openMenu);
+  closeBtn?.addEventListener("click", closeMenu);
+  menu?.querySelectorAll("nav a").forEach((a) => a.addEventListener("click", closeMenu));
+  menu?.addEventListener("click", (e) => {
+    if (e.target === menu) closeMenu();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !menu?.classList.contains("hidden")) closeMenu();
+  });
+  window.addEventListener("resize", () => {
+    if (window.innerWidth >= MD && !menu?.classList.contains("hidden")) closeMenu();
+  });
+</script>

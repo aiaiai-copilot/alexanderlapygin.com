@@ -1,0 +1,86 @@
+---
+import "~/styles/global.css";
+import Header from "~/components/Header.astro";
+import Footer from "~/components/Footer.astro";
+import {
+  alternatePath,
+  bcp47,
+  localizedPath,
+  ogLocale,
+  t,
+  type Locale,
+} from "~/i18n";
+
+interface Props {
+  locale: Locale;
+  title: string;
+  description?: string;
+  ogType?: "website" | "article";
+  noindex?: boolean;
+}
+
+const { locale, title, description, ogType = "website", noindex = false } = Astro.props;
+const dict = t(locale);
+const desc = description ?? dict.meta.siteDescription;
+
+const path = Astro.url.pathname;
+const canonical = new URL(path, Astro.site ?? "https://alexanderlapygin.com").toString();
+const altLocale = locale === "ru" ? "en" : "ru";
+const altUrl = new URL(
+  alternatePath(locale, path),
+  Astro.site ?? "https://alexanderlapygin.com",
+).toString();
+const xDefault = new URL(
+  localizedPath("ru", path.replace(/^\/en(\/|$)/, "/")),
+  Astro.site ?? "https://alexanderlapygin.com",
+).toString();
+---
+
+<!doctype html>
+<html lang={bcp47(locale)}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{`${title} — ${dict.meta.siteAuthor}`}</title>
+    <meta name="description" content={desc} />
+    {noindex && <meta name="robots" content="noindex" />}
+
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang={bcp47(locale)} href={canonical} />
+    <link rel="alternate" hreflang={bcp47(altLocale)} href={altUrl} />
+    <link rel="alternate" hreflang="x-default" href={xDefault} />
+
+    <meta property="og:title" content={`${title} — ${dict.meta.siteAuthor}`} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={ogLocale(locale)} />
+    <meta property="og:locale:alternate" content={ogLocale(altLocale)} />
+
+    <script is:inline>
+      (function () {
+        var KEY = "theme";
+        var root = document.documentElement;
+        var theme;
+        try {
+          var saved = localStorage.getItem(KEY);
+          if (saved === "light" || saved === "dark") theme = saved;
+          else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)
+            theme = "dark";
+          else theme = "light";
+        } catch (_) { theme = "light"; }
+        root.setAttribute("data-theme", theme);
+        requestAnimationFrame(function () {
+          root.classList.add("theme-ready");
+        });
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <Header locale={locale} currentPath={path} />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer locale={locale} />
+  </body>
+</html>

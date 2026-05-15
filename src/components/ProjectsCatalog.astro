@@ -1,0 +1,143 @@
+---
+import { getCollection } from "astro:content";
+import { localizedPath, t, type Locale } from "~/i18n";
+import { pageSlug } from "~/lib/slug";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const dict = t(locale);
+
+const clientProjects = (await getCollection("projects-client", (e) => e.data.lang === locale))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+const personalProjects = (await getCollection("projects-personal", (e) => e.data.lang === locale))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+const saasProjects = (await getCollection("projects-saas", (e) => e.data.lang === locale))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+---
+
+<section class="mx-auto max-w-6xl px-4 md:px-6 pt-16 md:pt-20 pb-8">
+  <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
+    {dict.projects.title}
+  </h1>
+  <p class="mt-4 text-lg max-w-2xl" style="color: var(--color-text-muted);">
+    {dict.projects.subtitle}
+  </p>
+</section>
+
+{clientProjects.length > 0 && (
+  <section class="mx-auto max-w-6xl px-4 md:px-6 py-8">
+    <h2 class="text-xs uppercase tracking-wider mb-6" style="color: var(--color-text-muted);">
+      {dict.projects.clientHeading}
+    </h2>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      {clientProjects.map((p) => (
+        <a
+          href={localizedPath(locale, `/projects/${pageSlug(p.id)}`)}
+          class="rounded-lg p-5 border block hover:bg-[var(--color-bg-muted)] transition-colors h-full"
+          style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
+        >
+          <h3 class="font-semibold text-lg mb-2" style="color: var(--color-text);">
+            {p.data.title}
+          </h3>
+          <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
+            {p.data.description}
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            {p.data.stack.slice(0, 4).map((tag) => (
+              <span class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--color-bg-muted); color: var(--color-text-muted);">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+)}
+
+{personalProjects.length > 0 && (
+  <section class="mx-auto max-w-6xl px-4 md:px-6 py-8">
+    <h2 class="text-xs uppercase tracking-wider mb-6" style="color: var(--color-text-muted);">
+      {dict.projects.personalHeading}
+    </h2>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      {personalProjects.map((p) => (
+        <a
+          href={p.data.liveUrl ?? p.data.repoUrl ?? "#"}
+          target={p.data.liveUrl || p.data.repoUrl ? "_blank" : undefined}
+          rel="noopener"
+          class="rounded-lg p-5 border block hover:bg-[var(--color-bg-muted)] transition-colors h-full"
+          style="border-color: var(--color-border);"
+        >
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <h3 class="font-semibold text-lg" style="color: var(--color-text);">
+              {p.data.title}
+            </h3>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-muted); flex-shrink: 0; margin-top: 4px;">
+              <path d="M7 17L17 7M7 7h10v10"/>
+            </svg>
+          </div>
+          <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
+            {p.data.description}
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            {p.data.stack.slice(0, 4).map((tag) => (
+              <span class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--color-bg-muted); color: var(--color-text-muted);">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+)}
+
+{saasProjects.length > 0 && (
+  <section class="mx-auto max-w-6xl px-4 md:px-6 py-8 pb-16">
+    <h2 class="text-xs uppercase tracking-wider mb-6" style="color: var(--color-text-muted);">
+      {dict.projects.saasHeading}
+    </h2>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      {saasProjects.map((p) => {
+        const disabled = p.data.comingSoon;
+        const Tag = disabled ? "div" : "a";
+        const href = p.data.liveUrl ?? "#";
+        return (
+          <Tag
+            href={disabled ? undefined : href}
+            target={disabled ? undefined : "_blank"}
+            rel={disabled ? undefined : "noopener"}
+            class={`rounded-lg p-5 border block h-full ${disabled ? "" : "hover:bg-[var(--color-bg-muted)] transition-colors"}`}
+            style={`border-color: var(--color-border); ${disabled ? "opacity: 0.7;" : ""}`}
+          >
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <h3 class="font-semibold text-lg" style="color: var(--color-text);">
+                {p.data.title}
+              </h3>
+              {disabled && (
+                <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap" style="background-color: var(--color-bg-muted); color: var(--color-text-muted);">
+                  {dict.projects.comingSoon}
+                </span>
+              )}
+            </div>
+            <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
+              {p.data.description}
+            </p>
+            <div class="flex flex-wrap gap-1.5">
+              {p.data.stack.slice(0, 4).map((tag) => (
+                <span class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--color-bg-muted); color: var(--color-text-muted);">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </Tag>
+        );
+      })}
+    </div>
+  </section>
+)}

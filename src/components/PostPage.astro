@@ -1,0 +1,109 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import { localizedPath, t, type Locale } from "~/i18n";
+import { formatDate } from "~/lib/format";
+import { readingTimeMinutes } from "~/lib/reading-time";
+
+interface Props {
+  locale: Locale;
+  entry: CollectionEntry<"posts">;
+}
+const { locale, entry } = Astro.props;
+const dict = t(locale);
+const { Content } = await render(entry);
+---
+
+<article class="mx-auto max-w-3xl px-4 md:px-6 pt-12 md:pt-16 pb-16">
+  <a
+    href={localizedPath(locale, "/blog")}
+    class="text-sm hover:underline"
+    style="color: var(--color-accent);"
+  >
+    {dict.blog.backLink}
+  </a>
+
+  <header class="mt-8 mb-8">
+    <div class="flex flex-wrap gap-1.5 mb-4">
+      {entry.data.tags.map((tag) => (
+        <span
+          class="text-xs px-2 py-0.5 rounded-full"
+          style="background-color: var(--color-bg-muted); color: var(--color-text-muted);"
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+    <h1 class="text-3xl md:text-5xl font-semibold tracking-tight mb-4" style="color: var(--color-text);">
+      {entry.data.title}
+    </h1>
+    <div class="text-sm" style="color: var(--color-text-muted);">
+      {formatDate(entry.data.pubDate, locale)} · {readingTimeMinutes(entry.body ?? "", locale)} {dict.blog.minutesShort}
+    </div>
+  </header>
+
+  <div class="post-body" style="color: var(--color-text);">
+    <Content />
+  </div>
+</article>
+
+<style is:global>
+  .post-body {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+  .post-body h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 2rem 0 1rem;
+    color: var(--color-text);
+  }
+  .post-body h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.75rem;
+    color: var(--color-text);
+  }
+  .post-body p {
+    margin: 1rem 0;
+    color: var(--color-text);
+  }
+  .post-body a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .post-body ul,
+  .post-body ol {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+  }
+  .post-body li {
+    margin: 0.25rem 0;
+  }
+  .post-body strong { font-weight: 600; }
+  .post-body em { font-style: italic; }
+  .post-body blockquote {
+    border-left: 3px solid var(--color-accent);
+    padding-left: 1rem;
+    margin: 1.25rem 0;
+    color: var(--color-text-muted);
+  }
+  .post-body code {
+    background-color: var(--color-bg-muted);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+  .post-body pre {
+    background-color: var(--color-bg-elev);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1.25rem 0;
+  }
+  .post-body pre code {
+    background: none;
+    padding: 0;
+  }
+</style>

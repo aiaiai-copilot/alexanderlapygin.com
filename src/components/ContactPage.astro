@@ -1,0 +1,428 @@
+---
+import { localizedPath, t, type Locale } from "~/i18n";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const dict = t(locale);
+const fields = dict.contact.fields;
+const placeholders = dict.contact.placeholders;
+---
+
+<section class="mx-auto max-w-6xl px-4 md:px-6 pt-16 md:pt-20 pb-8">
+  <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
+    {dict.contact.title}
+  </h1>
+  <p class="mt-4 text-lg max-w-2xl" style="color: var(--color-text-muted);">
+    {dict.contact.subtitle}
+  </p>
+</section>
+
+<section class="mx-auto max-w-6xl px-4 md:px-6 pb-16">
+  <div class="grid lg:grid-cols-[3fr_2fr] gap-8 lg:gap-12">
+    <div>
+      <form
+        id="contact-form"
+        novalidate
+        data-locale={locale}
+        class="rounded-lg p-6 md:p-8 border space-y-5"
+        style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
+      >
+        <input
+          type="text"
+          name="website"
+          tabindex="-1"
+          autocomplete="off"
+          aria-hidden="true"
+          class="sr-only"
+        />
+
+        <div>
+          <label for="cf-name" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
+            {fields.name}
+          </label>
+          <input
+            id="cf-name"
+            name="name"
+            type="text"
+            required
+            maxlength="100"
+            placeholder={placeholders.name}
+            class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)]"
+            style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
+            aria-describedby="cf-name-error"
+          />
+          <p id="cf-name-error" class="text-sm mt-1.5 hidden" style="color: var(--color-danger);"></p>
+        </div>
+
+        <div>
+          <label for="cf-email" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
+            {fields.email}
+          </label>
+          <input
+            id="cf-email"
+            name="email"
+            type="email"
+            required
+            maxlength="254"
+            placeholder={placeholders.email}
+            class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)]"
+            style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
+            aria-describedby="cf-email-error"
+          />
+          <p id="cf-email-error" class="text-sm mt-1.5 hidden" style="color: var(--color-danger);"></p>
+        </div>
+
+        <div>
+          <label for="cf-company" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
+            {fields.company}
+          </label>
+          <input
+            id="cf-company"
+            name="company"
+            type="text"
+            maxlength="200"
+            placeholder={placeholders.company}
+            class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)]"
+            style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
+          />
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-5">
+          <div>
+            <label for="cf-type" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
+              {fields.projectType}
+            </label>
+            <select
+              id="cf-type"
+              name="projectType"
+              class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)]"
+              style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
+            >
+              <option value="">{placeholders.pickOne}</option>
+              {dict.contact.projectTypes.map((opt) => (
+                <option value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label for="cf-budget" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
+              {fields.budget}
+            </label>
+            <select
+              id="cf-budget"
+              name="budget"
+              class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)]"
+              style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
+            >
+              <option value="">{placeholders.pickOne}</option>
+              {dict.contact.budgets.map((opt) => (
+                <option value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="cf-details" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
+            {fields.details}
+          </label>
+          <textarea
+            id="cf-details"
+            name="details"
+            required
+            minlength="30"
+            maxlength="5000"
+            rows="6"
+            placeholder={placeholders.details}
+            class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)] resize-y"
+            style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
+            aria-describedby="cf-details-error"
+          ></textarea>
+          <p id="cf-details-error" class="text-sm mt-1.5 hidden" style="color: var(--color-danger);"></p>
+        </div>
+
+        <div>
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input
+              id="cf-consent"
+              name="consent"
+              type="checkbox"
+              class="mt-1 w-4 h-4 cursor-pointer"
+            />
+            <span class="text-sm" style="color: var(--color-text);">
+              {fields.consent}{" "}
+              <a href={localizedPath(locale, "/privacy")} class="hover:underline" style="color: var(--color-accent);">
+                {fields.consentLink}
+              </a>.
+            </span>
+          </label>
+          <p id="cf-consent-error" class="text-sm mt-1.5 hidden" style="color: var(--color-danger);"></p>
+        </div>
+
+        <p id="cf-form-error" class="text-sm hidden rounded-md p-3" style="color: var(--color-danger); background-color: color-mix(in oklab, var(--color-danger) 10%, transparent);"></p>
+
+        <button
+          type="submit"
+          id="cf-submit"
+          disabled
+          class="w-full md:w-auto inline-flex items-center justify-center px-6 py-3 rounded-lg text-base font-semibold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+          style="background-color: var(--color-accent); color: var(--color-accent-text);"
+        >
+          <span data-label-rest>{fields.submit}</span>
+          <span data-label-sending class="hidden">{fields.submitting}</span>
+        </button>
+      </form>
+
+      <div
+        id="cf-success"
+        class="hidden rounded-lg p-6 md:p-8 border text-center"
+        style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
+      >
+        <h2 class="text-2xl font-semibold mb-3" style="color: var(--color-text);">
+          {dict.contact.success.title}
+        </h2>
+        <p class="text-base mb-6" style="color: var(--color-text-muted);">
+          {dict.contact.success.body}
+        </p>
+        <button
+          id="cf-send-another"
+          type="button"
+          class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium border hover:bg-[var(--color-bg-muted)] transition-colors"
+          style="border-color: var(--color-border); color: var(--color-text);"
+        >
+          {dict.contact.success.sendAnother}
+        </button>
+      </div>
+    </div>
+
+    <aside class="space-y-6">
+      <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
+        <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
+          {dict.contact.asideEmailHeading}
+        </div>
+        <a href="mailto:hello@alexanderlapygin.com" class="text-base font-medium hover:underline" style="color: var(--color-accent);">
+          hello@alexanderlapygin.com
+        </a>
+      </div>
+
+      <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
+        <h3 class="text-sm font-semibold mb-3" style="color: var(--color-text);">
+          {dict.contact.asideStepsHeading}
+        </h3>
+        <ol class="space-y-2 text-sm" style="color: var(--color-text-muted);">
+          {dict.contact.asideSteps.map((step, i) => (
+            <li class="flex gap-2">
+              <span style="color: var(--color-accent);">{i + 1}.</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
+        <h3 class="text-sm font-semibold mb-3" style="color: var(--color-text);">
+          {dict.contact.asideFaqHeading}
+        </h3>
+        <dl class="space-y-3 text-sm">
+          {dict.contact.asideFaq.map((item) => (
+            <div>
+              <dt class="font-medium mb-1" style="color: var(--color-text);">{item.q}</dt>
+              <dd style="color: var(--color-text-muted);">{item.a}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<script>
+  type Errors = {
+    requiredName: string;
+    requiredEmail: string;
+    invalidEmail: string;
+    requiredDetails: string;
+    detailsTooShort: string;
+    requiredConsent: string;
+    generic: string;
+    rateLimit: string;
+  };
+
+  const form = document.getElementById("contact-form") as HTMLFormElement | null;
+  const submitBtn = document.getElementById("cf-submit") as HTMLButtonElement | null;
+  const successPanel = document.getElementById("cf-success");
+  const sendAnotherBtn = document.getElementById("cf-send-another");
+  const labelRest = submitBtn?.querySelector<HTMLElement>("[data-label-rest]");
+  const labelSending = submitBtn?.querySelector<HTMLElement>("[data-label-sending]");
+
+  const locale = (form?.dataset.locale as "ru" | "en") ?? "ru";
+  const errors: Errors = locale === "ru"
+    ? {
+        requiredName: "Укажите имя",
+        requiredEmail: "Укажите email",
+        invalidEmail: "Похоже, email указан с ошибкой",
+        requiredDetails: "Опишите задачу хотя бы в нескольких предложениях",
+        detailsTooShort: "Минимум 30 символов — иначе не пойму, о чём речь",
+        requiredConsent: "Без согласия отправить нельзя",
+        generic:
+          "Что-то пошло не так. Попробуйте ещё раз или напишите напрямую на email из правой колонки.",
+        rateLimit:
+          "Слишком много запросов. Подождите минуту и повторите попытку, или напишите напрямую.",
+      }
+    : {
+        requiredName: "Please enter your name",
+        requiredEmail: "Please enter your email",
+        invalidEmail: "Looks like the email is malformed",
+        requiredDetails: "Please describe the task in a few sentences",
+        detailsTooShort: "At least 30 characters — otherwise I can't tell what's needed",
+        requiredConsent: "Consent is required to send",
+        generic:
+          "Something went wrong. Try again or write directly to the email in the right column.",
+        rateLimit:
+          "Too many requests. Wait a minute and try again, or email directly.",
+      };
+
+  function setFieldError(field: string, message: string | null) {
+    const input = document.getElementById(`cf-${field}`) as
+      | HTMLInputElement
+      | HTMLTextAreaElement
+      | null;
+    const err = document.getElementById(`cf-${field}-error`);
+    if (!input || !err) return;
+    if (message) {
+      err.textContent = message;
+      err.classList.remove("hidden");
+      input.setAttribute("aria-invalid", "true");
+      input.style.borderColor = "var(--color-danger)";
+    } else {
+      err.textContent = "";
+      err.classList.add("hidden");
+      input.removeAttribute("aria-invalid");
+      input.style.borderColor = "var(--color-border)";
+    }
+  }
+
+  function setFormError(message: string | null) {
+    const err = document.getElementById("cf-form-error");
+    if (!err) return;
+    if (message) {
+      err.textContent = message;
+      err.classList.remove("hidden");
+    } else {
+      err.textContent = "";
+      err.classList.add("hidden");
+    }
+  }
+
+  function validate(data: FormData): { valid: boolean; firstInvalid?: string } {
+    let firstInvalid: string | undefined;
+    let valid = true;
+    const fail = (field: string, message: string) => {
+      setFieldError(field, message);
+      valid = false;
+      if (!firstInvalid) firstInvalid = field;
+    };
+
+    const name = (data.get("name") as string | null)?.trim() ?? "";
+    if (!name) fail("name", errors.requiredName);
+    else setFieldError("name", null);
+
+    const email = (data.get("email") as string | null)?.trim() ?? "";
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) fail("email", errors.requiredEmail);
+    else if (!emailRe.test(email)) fail("email", errors.invalidEmail);
+    else setFieldError("email", null);
+
+    const details = (data.get("details") as string | null)?.trim() ?? "";
+    if (!details) fail("details", errors.requiredDetails);
+    else if (details.length < 30) fail("details", errors.detailsTooShort);
+    else setFieldError("details", null);
+
+    const consent = data.get("consent");
+    const consentErr = document.getElementById("cf-consent-error");
+    if (!consent) {
+      if (consentErr) {
+        consentErr.textContent = errors.requiredConsent;
+        consentErr.classList.remove("hidden");
+      }
+      valid = false;
+      if (!firstInvalid) firstInvalid = "consent";
+    } else {
+      if (consentErr) {
+        consentErr.textContent = "";
+        consentErr.classList.add("hidden");
+      }
+    }
+
+    return { valid, firstInvalid };
+  }
+
+  function recomputeSubmitState() {
+    if (!form || !submitBtn) return;
+    const data = new FormData(form);
+    const name = ((data.get("name") as string | null) ?? "").trim();
+    const email = ((data.get("email") as string | null) ?? "").trim();
+    const details = ((data.get("details") as string | null) ?? "").trim();
+    const consent = !!data.get("consent");
+    submitBtn.disabled = !(name && email && details && consent);
+  }
+
+  form?.addEventListener("input", recomputeSubmitState);
+  form?.addEventListener("change", recomputeSubmitState);
+  recomputeSubmitState();
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!form || !submitBtn || !labelRest || !labelSending) return;
+
+    setFormError(null);
+    const data = new FormData(form);
+
+    if (data.get("website")) {
+      // honeypot triggered — silent success
+      form.classList.add("hidden");
+      successPanel?.classList.remove("hidden");
+      return;
+    }
+
+    const { valid, firstInvalid } = validate(data);
+    if (!valid) {
+      if (firstInvalid) {
+        const el = document.getElementById(`cf-${firstInvalid}`);
+        el?.focus();
+      }
+      return;
+    }
+
+    submitBtn.disabled = true;
+    labelRest.classList.add("hidden");
+    labelSending.classList.remove("hidden");
+
+    try {
+      // PROTOTYPE: no backend yet. Simulate latency and a 200 response.
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      form.classList.add("hidden");
+      successPanel?.classList.remove("hidden");
+    } catch {
+      setFormError(errors.generic);
+    } finally {
+      labelRest.classList.remove("hidden");
+      labelSending.classList.add("hidden");
+      recomputeSubmitState();
+    }
+  });
+
+  sendAnotherBtn?.addEventListener("click", () => {
+    if (!form) return;
+    form.reset();
+    form.classList.remove("hidden");
+    successPanel?.classList.add("hidden");
+    setFormError(null);
+    ["name", "email", "details"].forEach((f) => setFieldError(f, null));
+    const consentErr = document.getElementById("cf-consent-error");
+    consentErr?.classList.add("hidden");
+    recomputeSubmitState();
+  });
+</script>

@@ -22,3 +22,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Superpowers (visual brainstorming companion)
+.superpowers/

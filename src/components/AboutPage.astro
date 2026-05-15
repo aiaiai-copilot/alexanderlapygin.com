@@ -1,0 +1,92 @@
+---
+import { localizedPath, t, type Locale } from "~/i18n";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const dict = t(locale);
+---
+
+<section class="mx-auto max-w-3xl px-4 md:px-6 pt-16 md:pt-20 pb-8">
+  <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
+    {dict.about.title}
+  </h1>
+</section>
+
+<section class="mx-auto max-w-3xl px-4 md:px-6 pb-12">
+  <h2 class="text-xl md:text-2xl font-semibold tracking-tight mb-4" style="color: var(--color-text);">
+    {dict.about.approachTitle}
+  </h2>
+  <div class="space-y-4 text-base leading-relaxed" style="color: var(--color-text);">
+    {dict.about.approachBody.map((p) => <p>{p}</p>)}
+  </div>
+</section>
+
+<section class="mx-auto max-w-3xl px-4 md:px-6 pb-12">
+  <h2 class="text-xl md:text-2xl font-semibold tracking-tight mb-6" style="color: var(--color-text);">
+    {dict.about.expertiseTitle}
+  </h2>
+  <div class="grid md:grid-cols-2 gap-6">
+    {dict.about.expertise.map((g) => (
+      <div>
+        <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
+          {g.group}
+        </div>
+        <ul class="space-y-1.5 text-sm" style="color: var(--color-text);">
+          {g.items.map((it) => <li>· {it}</li>)}
+        </ul>
+      </div>
+    ))}
+  </div>
+</section>
+
+<section class="mx-auto max-w-3xl px-4 md:px-6 pb-12">
+  <h2 class="text-xl md:text-2xl font-semibold tracking-tight mb-6" style="color: var(--color-text);">
+    {dict.about.timelineTitle}
+  </h2>
+  <ol class="space-y-8 border-l pl-6" style="border-color: var(--color-border);">
+    {dict.about.timeline.map((row) => (
+      <li>
+        <div class="text-xs uppercase tracking-wider mb-1" style="color: var(--color-text-muted);">
+          {row.period}
+        </div>
+        <div class="font-semibold text-base mb-2" style="color: var(--color-text);">
+          {row.role}
+        </div>
+        <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
+          {row.summary}
+        </p>
+        <ul class="space-y-1.5 text-sm" style="color: var(--color-text);">
+          {row.achievements.map((a) => <li>· {a}</li>)}
+        </ul>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<section class="mx-auto max-w-3xl px-4 md:px-6 pb-12">
+  <h2 class="text-xl md:text-2xl font-semibold tracking-tight mb-4" style="color: var(--color-text);">
+    {dict.about.educationTitle}
+  </h2>
+  <ul class="space-y-3 text-sm">
+    {dict.about.education.map((e) => (
+      <li class="flex flex-col md:flex-row md:gap-4">
+        <span class="text-xs uppercase tracking-wider md:w-40" style="color: var(--color-text-muted);">
+          {e.period}
+        </span>
+        <span style="color: var(--color-text);">{e.line}</span>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<section class="mx-auto max-w-3xl px-4 md:px-6 py-16 text-center">
+  <a
+    href={localizedPath(locale, "/contact")}
+    class="inline-flex items-center px-6 py-3 rounded-lg text-base font-semibold transition-colors hover:opacity-90"
+    style="background-color: var(--color-accent); color: var(--color-accent-text);"
+  >
+    {dict.about.cta}
+  </a>
+</section>
