@@ -1,9 +1,9 @@
 # HANDOFF
 
 **Date:** 2026-05-17
-**Branch:** `main` (рабочее дерево чистое, в синхроне с `origin/main`) — последний коммит `ff2265e` docs(handoff): update for session 2026-05-17 (2026-05-17).
+**Branch:** `main` (2 коммита впереди `origin/main`, рабочее дерево чистое) — последний коммит `cece042` fix(csp): emit theme/header scripts as external files (2026-05-17).
 
-Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, **обновлён 2026-05-17** до релиза `20260516T212815Z` (теперь содержит sitemap, RSS per-locale, og:image, favicon-стек, twitter:card, очищенную карточку minimal-backend). Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
+Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, **обновлён 2026-05-17** до релиза `20260516T221717Z` (CSP-фикс: все скрипты внешние, theme toggle и mobile menu работают под строгим `script-src 'self'`; всё, что было в предыдущем релизе `20260516T212815Z`, тоже здесь — sitemap, RSS per-locale, og:image, favicon-стек, twitter:card, очищенная карточка minimal-backend). Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
 ## In-flight context
 
@@ -23,22 +23,15 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
 
 ### Что осталось недоделанным
 
-1. **Theme toggle на stage — починить (Option 1 chosen, диагноз 2026-05-17 в session-блоке ниже).** CSP `script-src 'self'` (затянутый 2026-05-16) блокирует оба inline-скрипта Astro production-сборки → handler не цепляется, `data-theme` не ставится, переключатель ничего не делает. На dev'е работает (vite не отдаёт CSP). План:
-   - Вынести init-скрипт из `BaseLayout.astro:75-92` (`<script is:inline>`) в `public/theme-init.js`, заменить на `<script src="/theme-init.js"></script>` в `<head>` (порядок до paint'а критичен — без `defer`).
-   - Заставить Astro эмитить hoisted `<script>` блоки внешними файлами: попробовать `vite.build.assetsInlineLimit: 0` в `astro.config.mjs`; если не помогло — `experimental.directRenderScript` или Astro 6 docs про script bundling.
-   - Локально проверить `npm run build && npm run preview` под симулированным CSP (через `Content-Security-Policy` meta-тег в head или локальный nginx) до redeploy'а.
-   - Redeploy stage в новый release-таймстемп, smoke + ручной клик по theme toggle в Safari.
-   - **Это блокер для cutover** — без фикса тот же баг будет на проде.
-
-2. **Контент-трек pre-cutover** (отдельный, многосессионный, требует участия автора как контент-мейкера — несопоставим по объёму с техническим):
+1. **Контент-трек pre-cutover** (отдельный, многосессионный, требует участия автора как контент-мейкера — несопоставим по объёму с техническим):
    - `HomePage.astro:79-108` и `:124-144` — захардкоженный полуфабрикат: `[1,2,3].map(...)` для «Featured Projects» и «Latest Posts» с inline-RU/EN-стрингами «Пример проекта 1/2/3» / «Sample project 1/2/3» / «Заголовок публикации 1/2/3» с явным комментарием «Сюда подтянутся реальные карточки из коллекции» / «Реальные данные подтянутся из контент-коллекции». **Прямой блокер cutover'а.** Решение: либо пополнить коллекции и подключить `getCollection` (как в `ProjectsCatalog`/`BlogCatalog`), либо временно скрыть секции, либо другая стратегия.
    - EN-локализация контент-коллекций: в `src/content/` всё почти только RU — 2 RU + 1 EN пост, 1 client-project (RU), 1 personal-project (RU), 1 saas-project (RU), 2 solutions (RU). EN-каталоги `/en/projects`, `/en/blog`, `/en/solutions` рендерятся почти пустыми.
    - **Cyrillic-only `public/og.png`** — содержит «АЛ / Александр Лапыгин / Независимый разработчик»; для EN-локалей при социальной шарилке выглядит странно. Решение из спеки (один статический OG для обеих локалей) принято осознанно — пересматривать когда EN станет primary surface. Хук уже есть: `locale` в scope в `BaseLayout.astro`; добавить `og-en.svg` + ветвление в meta-теге.
    - Решение по `/portfolio/*` и `/showcase/*` (старый React-prod): URL'ы `/portfolio/living-tags/{living-tags-poc,living-tags-prototype}/`, `/showcase/{payments/sbp,oauth/simplest,telegram-bot/messaging}/` — это демки/PoC. Их нет в Astro. Варианты: (а) сохранить URL'ы через nginx alias на html-файлы (сами демки переехать в `public/legacy/` или хранить отдельно); (б) 301-редиректы на карточки в новом каталоге; (в) 410 Gone; (г) использовать их как `liveUrl` в карточках проектов.
 
-3. **Cutover stage→prod** (после контент-трека И CSP-фикса — pre-check должен пройти полностью):
+2. **Cutover stage→prod** (после контент-трека — единственный оставшийся блокер; CSP-фикс закрыт в `cece042`):
    - Pre-check повтор: блокеры из контент-трека закрыты, остальные ranking'ом OK.
-   - Свежий redeploy stage с актуальным build'ом + смоук перед cutover'ом (текущий stage-релиз `20260516T212815Z` от 2026-05-17 включает технический трек; если контент-трек добавит изменения — пересобрать).
+   - Свежий redeploy stage с актуальным build'ом + смоук перед cutover'ом (текущий stage-релиз `20260516T221717Z` от 2026-05-17 включает технический трек + CSP-фикс; если контент-трек добавит изменения — пересобрать).
    - Релизная цепочка prod как на stage: `/var/www/alexanderlapygin.com/html/` → симлинк на `releases/<TS>/` (atomic switch).
    - Deploy Astro в новый `releases/<TS>/`.
    - Path A vhost: `cp /etc/nginx/sites-enabled/alexanderlapygin.com.conf /root/...pre-upgrade-<TS>.bak` → `rm` regular-file → `ln -s ../sites-available/alexanderlapygin.com.conf` → `nginx -t && nginx -s reload`.
@@ -46,36 +39,42 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - Smoke prod (все ключевые URL'ы 200, формы работают, CSP/headers совпадают со stage, `certbot renew --dry-run` ok).
    - Rollback план держать рядом на каждом шаге.
 
-4. **Defense-in-depth** (не критично пока ufw в силе): сменить bind SBP-backend'ов с `0.0.0.0` на `127.0.0.1` в `sbp-backend.service` (prod, :3000) и `sbp-backend-stage.service` (stage, :3001). Артефакты в репо: `deploy/systemd/*.service`.
+3. **Defense-in-depth** (не критично пока ufw в силе): сменить bind SBP-backend'ов с `0.0.0.0` на `127.0.0.1` в `sbp-backend.service` (prod, :3000) и `sbp-backend-stage.service` (stage, :3001). Артефакты в репо: `deploy/systemd/*.service`.
 
-5. **Вне MVP-scope:**
+4. **Вне MVP-scope:**
    - GitHub Actions: push в `main` → деплой на stage. Удалить старый wrangler workflow, `wrangler` из `devDependencies` (`package.json`).
    - Cloudflare Pages-прототип `alexanderlapygin-prototype.pages.dev` отключить + удалить.
    - Опционально: prod SBP-backend `.env` перенести из `legacy/.../backend/.env` в `/etc/sbp-backend/prod.env` (симметрия со stage).
    - Cleanup `.wrangler/` (в `.gitignore` отсутствует — артефакт CF Pages лежит в репо).
    - `package.json` script для `node src/scripts/build-branding-assets.mjs` (сейчас запускается вручную — discoverability ноль).
 
-## Session 2026-05-17 (CSP debug)
+## Session 2026-05-17
 
 ### Что сделано
 
-Диагностика бага «theme toggle не работает на stage» (на dev'е работает). Корневая причина — CSP-заголовок stage `script-src 'self'` (затянутый 2026-05-16) блокирует **оба inline-скрипта** Astro production-сборки:
-1. init-`<script is:inline>` в `<head>` `BaseLayout.astro` (ставит `data-theme` на `<html>` до первого paint'а).
-2. bundled `<script type="module">…</script>` после `</header>` `Header.astro` (theme-toggle handler + mobile menu).
+Реализован Option 1 CSP-фикса (выбран в предыдущей сессии): theme toggle и mobile menu теперь работают на stage под строгим `script-src 'self'`.
 
-На dev'е работает, потому что vite dev-server не отдаёт CSP-заголовки. Console на stage не показывает violations при типичном workflow «загрузить → открыть инспектор → кликнуть» — Safari не «копит» нарушения между refresh'ами без открытого инспектора.
+- `public/theme-init.js` — новый файл с init-скриптом темы (тот же handler, что был inline'ом в `BaseLayout.astro:75-92`).
+- `src/layouts/BaseLayout.astro` — inline-блок заменён на `<script is:inline src="/theme-init.js"></script>`. Директива `is:inline` здесь означает «не процессить через vite-бандлер», ссылка на public-asset идёт в HTML как есть (без неё `astro build` падает с ошибкой про public-reference).
+- `astro.config.mjs` — добавлен `vite.build.assetsInlineLimit: 0`, и Astro эмитит hoisted `<script>` из `Header.astro` внешним файлом `/_astro/Header.astro_*.js` вместо инлайна в HTML.
+- `src/scripts/theme-init.ts` удалён — мёртвый код, ниоткуда не подключался (BaseLayout использовал inline-литерал).
+- `scripts/csp-preview.mjs` — крошечный Node-сервер для отладки CSP локально: отдаёт `dist/` с тем же CSP-заголовком, что nginx на stage. Запуск: `node scripts/csp-preview.mjs [port]`.
 
-Согласован фикс **Option 1: внешние скрипты + strict CSP** (вынести init в `public/`, заставить Astro эмитить hoisted `<script>` внешними файлами; nginx CSP остаётся `script-src 'self'`). Альтернативы рассмотрены и отвергнуты: `'unsafe-inline'` (откат заужения), SHA-256 хэши (фрагильно при пересборке bundled-скрипта), Astro `experimental.csp` (meta-CSP не заменит nginx-CSP, нужно совмещать). Реализация — в **новой сессии**.
+Stage redeploy: новый релиз `20260516T221717Z`, `chown www-data:www-data`, atomic symlink swap (`ln -sfn ... .new && mv -T`). Smoke: 12 ключевых URL'ов RU/EN отдают HTTP/2 200, CSP-header не изменился, 0 inline-скриптов в HTML, оба внешних `.js` отдаются с правильным mime. Theme toggle проверен пользователем в Safari на http://stage.alexanderlapygin.com/ — работает.
 
 ### Коммиты этой сессии
 
-Изменений кода не было — только этот handoff-коммит.
+- `cece042` fix(csp): emit theme/header scripts as external files
+- (handoff-коммит этой сессии)
 
 ### Локальное состояние (не в git)
 
-- Запущен `npm run dev` в background (логи `/tmp/astro-dev.log`). Безопасно убить вручную.
-- Открыт Safari на `http://localhost:4321/` для ручной проверки во время диагностики.
+- На VPS retention stage-цепочки: 3 релиза (`20260515T233747Z`, `20260516T212815Z`, `20260516T221717Z` — последний активный). На лимите retention=3, пруна не требуется.
+- На ноутбуке запущены фоновые процессы (можно убить вручную):
+  - `npm run dev` от прошлой сессии на :4321 (PID 9209, лог `/tmp/astro-dev.log`).
+  - `node scripts/csp-preview.mjs 4322` на :4322 (background-task ID `bhq8v4q4b`).
+- 2 локальных коммита (`cece042`, handoff) впереди `origin/main`, не запушено — публикацию решает пользователь.
 
 ### Осталось недоделанным
 
-Имплементация Option 1 — детальный план в новом пункте 1 блока «Что осталось недоделанным».
+Ничего свежего — только пункты из блока «Что осталось недоделанным» выше (контент-трек, cutover, defense-in-depth, вне-MVP cleanup).
