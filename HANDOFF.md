@@ -1,7 +1,7 @@
 # HANDOFF
 
 **Date:** 2026-05-17
-**Branch:** `main` (после merge технического трека впереди `origin/main` на 9 коммитов плюс грядущий handoff-коммит; рабочее дерево чистое) — последний код-коммит `9a8e0ab` fix(solutions): remove "analytics" from EN minimal-backend card (2026-05-17).
+**Branch:** `main` (рабочее дерево чистое, в синхроне с `origin/main`) — последний коммит `ff2265e` docs(handoff): update for session 2026-05-17 (2026-05-17).
 
 Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, **обновлён 2026-05-17** до релиза `20260516T212815Z` (теперь содержит sitemap, RSS per-locale, og:image, favicon-стек, twitter:card, очищенную карточку minimal-backend). Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
@@ -23,13 +23,20 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
 
 ### Что осталось недоделанным
 
-1. **Контент-трек pre-cutover** (отдельный, многосессионный, требует участия автора как контент-мейкера — несопоставим по объёму с техническим):
+1. **Theme toggle на stage — починить (Option 1 chosen, диагноз 2026-05-17 в session-блоке ниже).** CSP `script-src 'self'` (затянутый 2026-05-16) блокирует оба inline-скрипта Astro production-сборки → handler не цепляется, `data-theme` не ставится, переключатель ничего не делает. На dev'е работает (vite не отдаёт CSP). План:
+   - Вынести init-скрипт из `BaseLayout.astro:75-92` (`<script is:inline>`) в `public/theme-init.js`, заменить на `<script src="/theme-init.js"></script>` в `<head>` (порядок до paint'а критичен — без `defer`).
+   - Заставить Astro эмитить hoisted `<script>` блоки внешними файлами: попробовать `vite.build.assetsInlineLimit: 0` в `astro.config.mjs`; если не помогло — `experimental.directRenderScript` или Astro 6 docs про script bundling.
+   - Локально проверить `npm run build && npm run preview` под симулированным CSP (через `Content-Security-Policy` meta-тег в head или локальный nginx) до redeploy'а.
+   - Redeploy stage в новый release-таймстемп, smoke + ручной клик по theme toggle в Safari.
+   - **Это блокер для cutover** — без фикса тот же баг будет на проде.
+
+2. **Контент-трек pre-cutover** (отдельный, многосессионный, требует участия автора как контент-мейкера — несопоставим по объёму с техническим):
    - `HomePage.astro:79-108` и `:124-144` — захардкоженный полуфабрикат: `[1,2,3].map(...)` для «Featured Projects» и «Latest Posts» с inline-RU/EN-стрингами «Пример проекта 1/2/3» / «Sample project 1/2/3» / «Заголовок публикации 1/2/3» с явным комментарием «Сюда подтянутся реальные карточки из коллекции» / «Реальные данные подтянутся из контент-коллекции». **Прямой блокер cutover'а.** Решение: либо пополнить коллекции и подключить `getCollection` (как в `ProjectsCatalog`/`BlogCatalog`), либо временно скрыть секции, либо другая стратегия.
    - EN-локализация контент-коллекций: в `src/content/` всё почти только RU — 2 RU + 1 EN пост, 1 client-project (RU), 1 personal-project (RU), 1 saas-project (RU), 2 solutions (RU). EN-каталоги `/en/projects`, `/en/blog`, `/en/solutions` рендерятся почти пустыми.
    - **Cyrillic-only `public/og.png`** — содержит «АЛ / Александр Лапыгин / Независимый разработчик»; для EN-локалей при социальной шарилке выглядит странно. Решение из спеки (один статический OG для обеих локалей) принято осознанно — пересматривать когда EN станет primary surface. Хук уже есть: `locale` в scope в `BaseLayout.astro`; добавить `og-en.svg` + ветвление в meta-теге.
    - Решение по `/portfolio/*` и `/showcase/*` (старый React-prod): URL'ы `/portfolio/living-tags/{living-tags-poc,living-tags-prototype}/`, `/showcase/{payments/sbp,oauth/simplest,telegram-bot/messaging}/` — это демки/PoC. Их нет в Astro. Варианты: (а) сохранить URL'ы через nginx alias на html-файлы (сами демки переехать в `public/legacy/` или хранить отдельно); (б) 301-редиректы на карточки в новом каталоге; (в) 410 Gone; (г) использовать их как `liveUrl` в карточках проектов.
 
-2. **Cutover stage→prod** (после контент-трека — pre-check должен пройти полностью):
+3. **Cutover stage→prod** (после контент-трека И CSP-фикса — pre-check должен пройти полностью):
    - Pre-check повтор: блокеры из контент-трека закрыты, остальные ranking'ом OK.
    - Свежий redeploy stage с актуальным build'ом + смоук перед cutover'ом (текущий stage-релиз `20260516T212815Z` от 2026-05-17 включает технический трек; если контент-трек добавит изменения — пересобрать).
    - Релизная цепочка prod как на stage: `/var/www/alexanderlapygin.com/html/` → симлинк на `releases/<TS>/` (atomic switch).
@@ -39,46 +46,36 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - Smoke prod (все ключевые URL'ы 200, формы работают, CSP/headers совпадают со stage, `certbot renew --dry-run` ok).
    - Rollback план держать рядом на каждом шаге.
 
-3. **Defense-in-depth** (не критично пока ufw в силе): сменить bind SBP-backend'ов с `0.0.0.0` на `127.0.0.1` в `sbp-backend.service` (prod, :3000) и `sbp-backend-stage.service` (stage, :3001). Артефакты в репо: `deploy/systemd/*.service`.
+4. **Defense-in-depth** (не критично пока ufw в силе): сменить bind SBP-backend'ов с `0.0.0.0` на `127.0.0.1` в `sbp-backend.service` (prod, :3000) и `sbp-backend-stage.service` (stage, :3001). Артефакты в репо: `deploy/systemd/*.service`.
 
-4. **Вне MVP-scope:**
+5. **Вне MVP-scope:**
    - GitHub Actions: push в `main` → деплой на stage. Удалить старый wrangler workflow, `wrangler` из `devDependencies` (`package.json`).
    - Cloudflare Pages-прототип `alexanderlapygin-prototype.pages.dev` отключить + удалить.
    - Опционально: prod SBP-backend `.env` перенести из `legacy/.../backend/.env` в `/etc/sbp-backend/prod.env` (симметрия со stage).
    - Cleanup `.wrangler/` (в `.gitignore` отсутствует — артефакт CF Pages лежит в репо).
    - `package.json` script для `node src/scripts/build-branding-assets.mjs` (сейчас запускается вручную — discoverability ноль).
 
-## Session 2026-05-17
+## Session 2026-05-17 (CSP debug)
 
 ### Что сделано
 
-Имплементация технического трека pre-cutover. План `f615616` выполнен subagent-driven подходом из worktree `.claude/worktrees/feat-pre-cutover-technical-track` (создан через `EnterWorktree`, удалён в финиш-шаге).
+Диагностика бага «theme toggle не работает на stage» (на dev'е работает). Корневая причина — CSP-заголовок stage `script-src 'self'` (затянутый 2026-05-16) блокирует **оба inline-скрипта** Astro production-сборки:
+1. init-`<script is:inline>` в `<head>` `BaseLayout.astro` (ставит `data-theme` на `<html>` до первого paint'а).
+2. bundled `<script type="module">…</script>` после `</header>` `Header.astro` (theme-toggle handler + mobile menu).
 
-- **Task 1: Sitemap + robots.txt** — `@astrojs/sitemap` в `dependencies`, per-locale i18n config (ru-RU, en-US), `public/robots.txt` с Sitemap pointer.
-- **Task 2: RSS feeds per locale** — `@astrojs/rss` в `dependencies`, два endpoint'а (`src/pages/blog/rss.xml.ts`, `src/pages/en/blog/rss.xml.ts`), новый i18n key `rss.{title,description}` в `ru.ts`/`en.ts`/`types.ts`, `<link rel="alternate" type="application/rss+xml">` в `BaseLayout.astro` (per-locale, через `localizedPath`).
-- **Task 3: Branding assets** — `@resvg/resvg-js` в `devDependencies`, SVG-исходники `src/assets/branding/{og,favicon}.svg`, генератор `src/scripts/build-branding-assets.mjs` (resvg + inline ICO writer), сгенерированные `public/{og.png,favicon.{svg,ico},apple-touch-icon.png}` закоммичены в git (script запускается вручную, ассеты редко меняются). `BaseLayout`: favicon links + og:image-блок + twitter:card.
-- **Task 3 follow-up:** `<meta name="twitter:image">` добавлен рядом с `twitter:card` — code-quality reviewer обратил внимание, что не все scrapers Twitter/X надёжно fallback'ятся на og:image.
-- **Task 4: Cleanup «аналитика»** — `src/components/SolutionsPage.astro` строка 16 (RU) + строка 39 (EN) — слово «аналитика» / «analytics» убрано из карточки minimal-backend. EN-фикс был отдельным follow-up'ом — implementer Task 4 пропустил парный EN-card, что план эксплицитно предвидел.
-- **Task 5: Redeploy stage + smoke** — `npm run build` + rsync на VPS в новый `stage-releases/20260516T212815Z`, atomic symlink switch `/var/www/alexanderlapygin.com/stage-html` → новый релиз. Smoke: 9/9 endpoints HTTP/2 200 (`sitemap-index.xml`, `sitemap-0.xml`, `robots.txt`, оба `rss.xml`, `og.png`, `favicon.svg`, `favicon.ico`, `apple-touch-icon.png`), 4 мета-тега в `dist/index.html`, «аналитика»/«analytics» count 0 на обоих solutions, RSS items: RU 2, EN 1.
+На dev'е работает, потому что vite dev-server не отдаёт CSP-заголовки. Console на stage не показывает violations при типичном workflow «загрузить → открыть инспектор → кликнуть» — Safari не «копит» нарушения между refresh'ами без открытого инспектора.
 
-Каждая задача проходила цикл implementer → spec-compliance review → code-quality review с фикс-циклами при необходимости. Финальный integration review подтвердил merge readiness.
+Согласован фикс **Option 1: внешние скрипты + strict CSP** (вынести init в `public/`, заставить Astro эмитить hoisted `<script>` внешними файлами; nginx CSP остаётся `script-src 'self'`). Альтернативы рассмотрены и отвергнуты: `'unsafe-inline'` (откат заужения), SHA-256 хэши (фрагильно при пересборке bundled-скрипта), Astro `experimental.csp` (meta-CSP не заменит nginx-CSP, нужно совмещать). Реализация — в **новой сессии**.
 
 ### Коммиты этой сессии
 
-- `49e38f1` feat(seo): add sitemap integration and robots.txt
-- `d8eba14` feat(blog): generate RSS feeds per locale
-- `61b78a9` feat(branding): add og:image, favicon, apple-touch-icon
-- `28b3a36` fix(branding): add twitter:image alongside twitter:card
-- `e32a559` fix(solutions): remove "аналитика" from RU minimal-backend card
-- `9a8e0ab` fix(solutions): remove "analytics" from EN minimal-backend card
-
-После HANDOFF-коммита worktree merge'дется в `main` локально (fast-forward), worktree и feature-branch удаляются.
+Изменений кода не было — только этот handoff-коммит.
 
 ### Локальное состояние (не в git)
 
-- **Локально:** worktree `.claude/worktrees/feat-pre-cutover-technical-track` и feature branch `worktree-feat-pre-cutover-technical-track` будут удалены после merge'а. После финиш-шагов рабочее дерево чистое в `main`.
-- **VPS:** новый stage-релиз `/var/www/alexanderlapygin.com/stage-releases/20260516T212815Z` (live через `stage-html` symlink). Предыдущий `stage-releases/20260515T233747Z` лежит рядом — для быстрого rollback'а `ln -sfn .../20260515T233747Z .../stage-html`. Retention 3 последних релиза — пока чистить нечего. Prod, snippet, vhost'ы, SBP-backend'ы — без изменений.
+- Запущен `npm run dev` в background (логи `/tmp/astro-dev.log`). Безопасно убить вручную.
+- Открыт Safari на `http://localhost:4321/` для ручной проверки во время диагностики.
 
 ### Осталось недоделанным
 
-См. блок «Что осталось недоделанным» в In-flight context. Главное на следующую сессию: либо контент-трек (наполнить коллекции, спрятать `[1,2,3].map`-полуфабрикат на HomePage, разобраться с EN OG image и с легаси `/portfolio`-`/showcase` URL'ами), либо cutover stage→prod, если контент готов сам по себе.
+Имплементация Option 1 — детальный план в новом пункте 1 блока «Что осталось недоделанным».
