@@ -70,6 +70,7 @@ const xDefault = new URL(
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={dict.meta.siteAuthor} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={new URL("/og.png", Astro.site ?? "https://alexanderlapygin.com").toString()} />
 
     <script is:inline>
       (function () {
