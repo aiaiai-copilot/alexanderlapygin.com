@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
   site: 'https://alexanderlapygin.com',
@@ -10,4 +11,12 @@ export default defineConfig({
       prefixDefaultLocale: false,
     },
   },
+  integrations: [
+    sitemap({
+      i18n: {
+        defaultLocale: 'ru',
+        locales: { ru: 'ru-RU', en: 'en-US' },
+      },
+    }),
+  ],
 });
