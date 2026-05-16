@@ -49,6 +49,12 @@ const xDefault = new URL(
     <link rel="alternate" hreflang={bcp47(locale)} href={canonical} />
     <link rel="alternate" hreflang={bcp47(altLocale)} href={altUrl} />
     <link rel="alternate" hreflang="x-default" href={xDefault} />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={dict.rss.title}
+      href={new URL(localizedPath(locale, "/blog/rss.xml"), Astro.site ?? "https://alexanderlapygin.com").toString()}
+    />
 
     <meta property="og:title" content={`${title} — ${dict.meta.siteAuthor}`} />
     <meta property="og:description" content={desc} />

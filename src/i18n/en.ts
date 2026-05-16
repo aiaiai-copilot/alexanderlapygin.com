@@ -7,6 +7,10 @@ export const en: Dictionary = {
       "Independent web developer and technical writer. Partner-style engagement, transparency, full project ownership for the client.",
     siteAuthor: "Alexander Lapygin",
   },
+  rss: {
+    title: "Blog — Alexander Lapygin",
+    description: "Notes on independent development, infrastructure, and AI tooling.",
+  },
   nav: {
     home: "Home",
     about: "About",

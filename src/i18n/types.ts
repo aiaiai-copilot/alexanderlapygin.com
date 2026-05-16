@@ -9,6 +9,10 @@ export interface Dictionary {
     siteDescription: string;
     siteAuthor: string;
   };
+  rss: {
+    title: string;
+    description: string;
+  };
   nav: {
     home: string;
     about: string;
