@@ -1,7 +1,7 @@
 # HANDOFF
 
 **Date:** 2026-05-16
-**Branch:** `main` (7 коммитов впереди `origin/main` плюс грядущий handoff-коммит; рабочее дерево чистое) — последний коммит `d4b70b8` refactor: remove analytics surface (Metrika, cookies, RKN notifications) (2026-05-16).
+**Branch:** `main` (8 коммитов впереди `origin/main` плюс грядущий handoff-коммит; рабочее дерево чистое) — последний коммит `791a247` docs(handoff): mark РКН-removal as committed (d4b70b8) (2026-05-16).
 
 Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, отдельный SBP-backend на :3001. Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
@@ -15,76 +15,38 @@
 
 Активный prod-vhost `/etc/nginx/sites-enabled/alexanderlapygin.com.conf` — regular-file (не симлинк), pinned ad-hoc patch'ем 2026-05-16. Path A (replace regular-file → symlink на репо-Astro-vhost) **отложен** до cutover'а stage→prod (репо-vhost под Astro, активация сейчас сломает React-роуты). Бэкапы для отката (snippet + vhost) лежат на VPS в `/root/`, путь и sha256 — в memory `vps-state-snapshot`.
 
-CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.conf`) — **ещё СТАРАЯ версия** с `mc.yandex.*` и `yastatic.net` в директивах. Локальная новая версия в репо уже сужена (см. Session-блок), но **не задеплоена**. Деплой: `scp deploy/nginx/alexanderlapygin-security-headers.conf root@84.54.29.190:/etc/nginx/snippets/` + `ssh root@84.54.29.190 'nginx -t && nginx -s reload'` + smoke prod/stage. Делается **только после коммита** (чтобы репо был source-of-truth).
+CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.conf`) — **актуальный, узкий** (синхронизирован с репо 2026-05-16 19:07 UTC, sha256 `72a15068…`): только Google Fonts, без `mc.yandex.*`/`yastatic.net`, без `frame-src`. Backup предыдущей широкой версии: `/root/alexanderlapygin-security-headers.conf.pre-csp-narrow-20260516T190419Z.bak` (sha256 `51ba5f28…`). Rollback: `cp <backup> /etc/nginx/snippets/alexanderlapygin-security-headers.conf && nginx -t && nginx -s reload`.
 
 ### Что осталось недоделанным (актуализировано на конец сессии)
 
-1. **Деплой обновлённого CSP snippet'а на VPS** (prod + stage). `scp deploy/nginx/alexanderlapygin-security-headers.conf root@84.54.29.190:/etc/nginx/snippets/` + `ssh root@84.54.29.190 'nginx -t && nginx -s reload'` + smoke prod/stage. **Приоритет следующей сессии.**
-2. **Cutover stage→prod** — крупный scope. Включает: deploy Astro в `/var/www/alexanderlapygin.com/html/`, активация репо-vhost (path A: regular-file → симлинк), 301-редиректы старых React-URL'ов если важно для SEO, smoke план, rollback план. Пред-чек по правилу [[check-publish-readiness-before-cutover]]: контент готов, формы работают, 404/sitemap/robots/OG ok. Делается после #1.
-3. **Defense-in-depth** (не критично пока ufw в силе): сменить bind SBP-backend'ов с `0.0.0.0` на `127.0.0.1` в `sbp-backend.service` (prod, :3000) и `sbp-backend-stage.service` (stage, :3001). Артефакты в репо: `deploy/systemd/*.service`.
-4. **Вне MVP-scope:**
+1. **Cutover stage→prod** — крупный scope. Включает: deploy Astro в `/var/www/alexanderlapygin.com/html/`, активация репо-vhost (path A: regular-file → симлинк), 301-редиректы старых React-URL'ов если важно для SEO, smoke план, rollback план. Пред-чек по правилу [[check-publish-readiness-before-cutover]]: контент готов, формы работают, 404/sitemap/robots/OG ok. **Приоритет следующей сессии.**
+2. **Defense-in-depth** (не критично пока ufw в силе): сменить bind SBP-backend'ов с `0.0.0.0` на `127.0.0.1` в `sbp-backend.service` (prod, :3000) и `sbp-backend-stage.service` (stage, :3001). Артефакты в репо: `deploy/systemd/*.service`.
+3. **Вне MVP-scope:**
    - GitHub Actions: push в `main` → деплой на stage. Удалить старый wrangler workflow, `wrangler` из `devDependencies` (`package.json`).
    - Cloudflare Pages-прототип `alexanderlapygin-prototype.pages.dev` отключить + удалить.
    - Опционально: prod SBP-backend `.env` перенести из `legacy/.../backend/.env` в `/etc/sbp-backend/prod.env` (симметрия со stage).
 
-## Session 2026-05-16 (РКН-removal — committed `d4b70b8`)
+## Session 2026-05-16 (CSP snippet deploy)
 
 ### Что сделано
 
-Реализован весь скоуп РКН-removal'а, запланированный прошлой сессией. Закоммичено в `d4b70b8` (12 файлов, +102/-274). Pass: `npm run check` 0/0, `npm run build` ok (20 страниц, 731 ms). Деталь правок ниже сохранена как развёрнутый комментарий к коммиту; в следующем `/handoff`-вырезании можно убрать целиком (всё восстановимо через `git show d4b70b8` и `git show 613ec1c:HANDOFF.md`).
+Задеплоен сужённый CSP snippet (из коммита `d4b70b8`) на VPS — prod + stage. Файл `deploy/nginx/alexanderlapygin-security-headers.conf` в репо не менялся (в коммитах не отражено — только перенос на VPS).
 
-- **Код:**
-  - `src/components/ContactPage.astro` — удалена функция `trackGoal()` и все 4 её вызова (`form_validation_error`, `form_submit_telegram`, `mailto_click`, `telegram_direct_click`).
-  - `src/components/Footer.astro` — удалена кнопка `data-cookie-settings` (обработчик и так не подключался).
-  - `src/i18n/{ru,en,types}.ts` — убран ключ `footer.cookieSettings`.
-  - `src/components/PrivacyPage.astro` — переписан под массив абзацев (`dict.privacy.paragraphs.map(...)`).
-  - `src/i18n/{ru,en}.ts` — `privacy.body` → `privacy.paragraphs[]` (7 абзацев RU+EN с полным текстом политики: оператор не обрабатывает ПДн через сайт, Telegram-deeplink самостоятельно, HTTP-логи Beget, нет аналитики/счётчиков, переписка ≤ 12 мес, права субъекта).
-  - `src/i18n/types.ts` — соответствующее обновление типа.
-
-- **Env:** `.env` и `.env.example` — `PUBLIC_METRIKA_ID` строка удалена. `.env` локально не в git.
-
-- **CSP snippet:** `deploy/nginx/alexanderlapygin-security-headers.conf` — сужен. Удалено: `https://mc.yandex.ru`, `https://mc.yandex.com`, `https://yastatic.net` из `script-src`/`img-src`/`connect-src`; директива `frame-src` убрана целиком. Оставлены только Google Fonts (`fonts.googleapis.com` в `style-src`, `fonts.gstatic.com` в `font-src`).
-
-- **`docs/spec/spec.md`:**
-  - ToC §10: «Аналитика и юридические требования» → «Юридические требования».
-  - §1: убрана связка «Метрика + логи» → просто «логи Telegram/email»; добавлено упоминание `decisions.md` §5.4.
-  - §3.4 (подвал): убрана ссылка «Настройки cookie».
-  - §4.9: ссылка «см. 10.3» → «см. 10.1» (после переноса).
-  - §8.2: из списка интерактива убран «cookie-баннер».
-  - **§10 целиком переписан:** §10.1 «Политика конфиденциальности» (8 пунктов, без cookies/Метрики/уведомлений) + §10.2 «Трансграничная передача» (короткое подтверждение «не требуется, Beget РФ»). Удалены: §10.5 (Реестр ст. 22.1), §10.6 (Процедура запросов — осталось в `runbook.md` §9).
-  - §11.2: удалён абзац «Метрика и производительность».
-  - §11.6 (CSP): упрощён — внешние домены теперь только Google Fonts, упоминание Метрики/Webvisor убрано.
-  - §12.7 «Аналитика и согласие» — удалён целиком. §12.8 «Юридические требования» — упрощён (убраны пункты про уведомления ст. 22 и ст. 12, упрощено «восемь» вместо «девять»). §12.9 «Эксплуатация» → §12.8.
-
-- **`docs/spec/decisions.md`:**
-  - §2.4 (cookie-баннер), §5.1 (Метрика), §5.2 (Webvisor), §5.3 (form_submit_telegram) — помечены строкой `**Status: Reversed (2026-05-16).**` с rationale + ссылкой на §5.4. Текст самих ADR'ов сохранён ниже (historical-приёмом из «Дополнений»).
-  - **Новый §5.4 «Отказ от аналитики, не требующей согласия»** — полный ADR (контекст, решение, альтернативы — cookieless self-hosted / отложить / логи Beget, обоснование как минимизация юридической поверхности — параллель с §1.1, §1.2; последствия по всему стеку — CSP, i18n, .env, spec/runbook; триггер пересмотра).
-
-- **`docs/spec/runbook.md`:**
-  - §1: убран `PUBLIC_METRIKA_ID=` и блок-комментарий «Аналитика».
-  - §10 «Реестр обработки ПДн (шаблон)» — удалён целиком.
-  - §11 «Регистрационные действия с Роскомнадзором» — удалён целиком.
-  - §13 «Цели Метрики» — удалён целиком.
-  - §12 → §10 (Транслитерация slug), §14 → §11 (CSP-директивы, с новым однострочником без Метрика-доменов и без Webvisor-сноски), §15 → §12 (Lighthouse-аудит).
-  - §4: ссылка «см. §14» → «см. §11» (после перенумерации).
-  - §7.1 (месячная проверка обращений): переписан — без отсылки к срабатываниям цели в Метрике; теперь это «сверить реально полученные сообщения с ожиданием» + ручной прогон deeplink-сценария при подозрении.
-  - ToC: убраны §10/§11/§13, перенумерация §12→§10, §14→§11, §15→§12.
-
-- **`README.md`:** строка «Аналитика — Яндекс Метрика, cookie-баннер, целевые события» → «Аналитика и cookie-баннер — нет. Метрика и иные внешние счётчики не подключаются (decisions §5.4)»; устаревший «чекбокс согласия» из описания формы убран; «Серверный `/api/contact`» обновлён под актуальный Telegram deeplink.
-
-**12 изменённых файлов в рабочем дереве:** `.env.example`, `README.md`, `deploy/nginx/alexanderlapygin-security-headers.conf`, `docs/spec/{spec,decisions,runbook}.md`, `src/components/{ContactPage,Footer,PrivacyPage}.astro`, `src/i18n/{en,ru,types}.ts`. (`.env` — также изменён, но gitignored.)
+- `scp deploy/nginx/alexanderlapygin-security-headers.conf root@84.54.29.190:/etc/nginx/snippets/` — sha256 нового файла на VPS совпал с локальным (`72a15068c31b7003fec7c16661368235d60e8f1166f062776e1507c10d831754`).
+- Pre-deploy backup на VPS: `/root/alexanderlapygin-security-headers.conf.pre-csp-narrow-20260516T190419Z.bak` (sha256 широкой версии `51ba5f28f5007d70e1d8a0a6e3cba21d83ebf5f7f74273736201afdb27b52baa`).
+- `ssh root@84.54.29.190 'nginx -t && nginx -s reload'` — ok.
+- Smoke `curl -sSI`: prod `/`, prod `/api/health`, stage `/` — все 6 security-заголовков на месте (HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, новая узкая CSP). На `/api/` повторный `include` snippet'а отработал как ожидалось (nginx-footgun: add_header в location сбрасывает наследование).
+- Memory `vps-state-snapshot` обновлён под новый sha256 snippet'а и путь к backup'у.
 
 ### Коммиты этой сессии
 
-- `613ec1c` docs(handoff): update for session 2026-05-16 (РКН-removal в коде, uncommitted)
-- `d4b70b8` refactor: remove analytics surface (Metrika, cookies, RKN notifications)
-- `<этот handoff-коммит>` docs(handoff): mark РКН-removal as committed (d4b70b8)
+- `<этот handoff-коммит>` docs(handoff): update for session 2026-05-16 (CSP snippet deployed)
 
 ### Локальное состояние (не в git)
 
-- **Локально:** рабочее дерево чистое. `.env` — изменён локально (`PUBLIC_METRIKA_ID` строка удалена) — gitignored.
-- **VPS:** без изменений в этой сессии. **Прод-snippet всё ещё содержит СТАРУЮ CSP** с `mc.yandex.*`/`yastatic.net` — не уязвимость, но рассинхрон с репо. Деплой snippet'а — приоритет #1 в недоделанном.
+- **Локально:** рабочее дерево чистое. `.env` — `PUBLIC_METRIKA_ID` удалён (gitignored), без изменений в этой сессии.
+- **VPS:** snippet `/etc/nginx/snippets/alexanderlapygin-security-headers.conf` обновлён (sha256 `72a15068…`); nginx перезагружен; prod + stage отдают новую узкую CSP; backup широкой версии — в `/root/`.
 
 ### Осталось недоделанным
 
-См. блок «Что осталось недоделанным» в In-flight context. Главное: #1 — деплой обновлённого CSP snippet'а на VPS.
+См. блок «Что осталось недоделанным» в In-flight context. Главное: #1 — cutover stage→prod.
