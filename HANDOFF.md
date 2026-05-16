@@ -1,7 +1,7 @@
 # HANDOFF
 
 **Date:** 2026-05-17
-**Branch:** `main` (2 коммита впереди `origin/main`, рабочее дерево чистое) — последний коммит `cece042` fix(csp): emit theme/header scripts as external files (2026-05-17).
+**Branch:** `main` (синхронизирована с `origin/main`, рабочее дерево чистое) — последний содержательный коммит `cece042` fix(csp): emit theme/header scripts as external files (2026-05-17), запушен.
 
 Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, **обновлён 2026-05-17** до релиза `20260516T221717Z` (CSP-фикс: все скрипты внешние, theme toggle и mobile menu работают под строгим `script-src 'self'`; всё, что было в предыдущем релизе `20260516T212815Z`, тоже здесь — sitemap, RSS per-locale, og:image, favicon-стек, twitter:card, очищенная карточка minimal-backend). Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
@@ -48,33 +48,24 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - Cleanup `.wrangler/` (в `.gitignore` отсутствует — артефакт CF Pages лежит в репо).
    - `package.json` script для `node src/scripts/build-branding-assets.mjs` (сейчас запускается вручную — discoverability ноль).
 
-## Session 2026-05-17
+## Session 2026-05-17 (вторая сессия дня)
 
 ### Что сделано
 
-Реализован Option 1 CSP-фикса (выбран в предыдущей сессии): theme toggle и mobile menu теперь работают на stage под строгим `script-src 'self'`.
-
-- `public/theme-init.js` — новый файл с init-скриптом темы (тот же handler, что был inline'ом в `BaseLayout.astro:75-92`).
-- `src/layouts/BaseLayout.astro` — inline-блок заменён на `<script is:inline src="/theme-init.js"></script>`. Директива `is:inline` здесь означает «не процессить через vite-бандлер», ссылка на public-asset идёт в HTML как есть (без неё `astro build` падает с ошибкой про public-reference).
-- `astro.config.mjs` — добавлен `vite.build.assetsInlineLimit: 0`, и Astro эмитит hoisted `<script>` из `Header.astro` внешним файлом `/_astro/Header.astro_*.js` вместо инлайна в HTML.
-- `src/scripts/theme-init.ts` удалён — мёртвый код, ниоткуда не подключался (BaseLayout использовал inline-литерал).
-- `scripts/csp-preview.mjs` — крошечный Node-сервер для отладки CSP локально: отдаёт `dist/` с тем же CSP-заголовком, что nginx на stage. Запуск: `node scripts/csp-preview.mjs [port]`.
-
-Stage redeploy: новый релиз `20260516T221717Z`, `chown www-data:www-data`, atomic symlink swap (`ln -sfn ... .new && mv -T`). Smoke: 12 ключевых URL'ов RU/EN отдают HTTP/2 200, CSP-header не изменился, 0 inline-скриптов в HTML, оба внешних `.js` отдаются с правильным mime. Theme toggle проверен пользователем в Safari на http://stage.alexanderlapygin.com/ — работает.
+- Подтверждён push в `origin/main`: коммиты прошлой сессии (`cece042` CSP-фикс + `7c3ccf1` handoff) теперь на remote, рабочее дерево синхронизировано.
+- Актуализирован `HANDOFF.md` под новое состояние (шапка + чистка устаревшего session-блока, чьё содержимое теперь восстановимо через `git show 7c3ccf1:HANDOFF.md`).
 
 ### Коммиты этой сессии
 
-- `cece042` fix(csp): emit theme/header scripts as external files
 - (handoff-коммит этой сессии)
 
 ### Локальное состояние (не в git)
 
-- На VPS retention stage-цепочки: 3 релиза (`20260515T233747Z`, `20260516T212815Z`, `20260516T221717Z` — последний активный). На лимите retention=3, пруна не требуется.
-- На ноутбуке запущены фоновые процессы (можно убить вручную):
-  - `npm run dev` от прошлой сессии на :4321 (PID 9209, лог `/tmp/astro-dev.log`).
+- На VPS retention stage-цепочки прежняя: 3 релиза, последний активный — `20260516T221717Z`. Не менялось.
+- На ноутбуке могут всё ещё работать фоновые процессы от прошлой сессии (не верифицировано в этой):
+  - `npm run dev` на :4321 (PID 9209, лог `/tmp/astro-dev.log`).
   - `node scripts/csp-preview.mjs 4322` на :4322 (background-task ID `bhq8v4q4b`).
-- 2 локальных коммита (`cece042`, handoff) впереди `origin/main`, не запушено — публикацию решает пользователь.
 
 ### Осталось недоделанным
 
-Ничего свежего — только пункты из блока «Что осталось недоделанным» выше (контент-трек, cutover, defense-in-depth, вне-MVP cleanup).
+Без изменений относительно общего блока «Что осталось недоделанным» выше (контент-трек, cutover, defense-in-depth, вне-MVP cleanup).
