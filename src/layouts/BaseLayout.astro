@@ -46,6 +46,9 @@ const xDefault = new URL(
     {noindex && <meta name="robots" content="noindex" />}
 
     <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="alternate" hreflang={bcp47(locale)} href={canonical} />
     <link rel="alternate" hreflang={bcp47(altLocale)} href={altUrl} />
     <link rel="alternate" hreflang="x-default" href={xDefault} />
@@ -62,6 +65,11 @@ const xDefault = new URL(
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content={ogLocale(locale)} />
     <meta property="og:locale:alternate" content={ogLocale(altLocale)} />
+    <meta property="og:image" content={new URL("/og.png", Astro.site ?? "https://alexanderlapygin.com").toString()} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={dict.meta.siteAuthor} />
+    <meta name="twitter:card" content="summary_large_image" />
 
     <script is:inline>
       (function () {
