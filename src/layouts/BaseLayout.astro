@@ -72,24 +72,7 @@ const xDefault = new URL(
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={new URL("/og.png", Astro.site ?? "https://alexanderlapygin.com").toString()} />
 
-    <script is:inline>
-      (function () {
-        var KEY = "theme";
-        var root = document.documentElement;
-        var theme;
-        try {
-          var saved = localStorage.getItem(KEY);
-          if (saved === "light" || saved === "dark") theme = saved;
-          else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)
-            theme = "dark";
-          else theme = "light";
-        } catch (_) { theme = "light"; }
-        root.setAttribute("data-theme", theme);
-        requestAnimationFrame(function () {
-          root.classList.add("theme-ready");
-        });
-      })();
-    </script>
+    <script is:inline src="/theme-init.js"></script>
   </head>
   <body class="min-h-screen flex flex-col">
     <Header locale={locale} currentPath={path} />
