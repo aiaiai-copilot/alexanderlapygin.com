@@ -90,9 +90,6 @@ const contactEmail = import.meta.env.PUBLIC_CONTACT_EMAIL ?? "";
       <span>{dict.footer.copyright(year)}</span>
       <div class="flex flex-wrap items-center gap-4">
         <a href={localizedPath(locale, "/privacy")} class="hover:underline">{dict.footer.privacy}</a>
-        <button type="button" data-cookie-settings class="hover:underline" style="color: inherit; background: none; border: 0; padding: 0; cursor: pointer; font: inherit;">
-          {dict.footer.cookieSettings}
-        </button>
         <a href={localizedPath(locale, "/blog/rss.xml")} class="hover:underline">{dict.footer.rss}</a>
       </div>
     </div>

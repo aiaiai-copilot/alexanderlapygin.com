@@ -34,7 +34,6 @@ export interface Dictionary {
     telegramAriaLabel: string;
     githubAriaLabel: string;
     privacy: string;
-    cookieSettings: string;
     rss: string;
     copyright: (year: number) => string;
   };
@@ -162,7 +161,7 @@ export interface Dictionary {
   };
   privacy: {
     title: string;
-    body: string;
+    paragraphs: string[];
   };
   notFound: {
     title: string;

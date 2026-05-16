@@ -13,9 +13,11 @@ const dict = t(locale);
     {dict.privacy.title}
   </h1>
   <div
-    class="rounded-lg p-6 border"
+    class="rounded-lg p-6 md:p-8 border space-y-4"
     style="background-color: var(--color-bg-elev); border-color: var(--color-border); color: var(--color-text);"
   >
-    <p class="text-base leading-relaxed">{dict.privacy.body}</p>
+    {dict.privacy.paragraphs.map((p) => (
+      <p class="text-base leading-relaxed">{p}</p>
+    ))}
   </div>
 </section>

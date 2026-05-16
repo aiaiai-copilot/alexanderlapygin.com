@@ -441,14 +441,12 @@ const detailsMin = 30;
       const values = readValues();
       const { valid, firstInvalid } = validate(values);
       if (!valid) {
-        trackGoal("form_validation_error");
         if (firstInvalid) document.getElementById(`cf-${firstInvalid}`)?.focus();
         return;
       }
       if (!username) return;
 
       const { url } = buildTelegramDeeplink(values, labels, username);
-      trackGoal("form_submit_telegram");
       window.open(url, "_blank", "noopener");
 
       labelRest.classList.add("hidden");
@@ -461,22 +459,5 @@ const detailsMin = 30;
         recompute();
       }, 3000);
     });
-
-    document.querySelectorAll<HTMLAnchorElement>('a[data-track="mailto"]').forEach((a) => {
-      a.addEventListener("click", () => trackGoal("mailto_click"));
-    });
-    document.querySelectorAll<HTMLAnchorElement>('a[data-track="telegram-direct"]').forEach((a) => {
-      a.addEventListener("click", () => trackGoal("telegram_direct_click"));
-    });
-  }
-
-  function trackGoal(goal: string) {
-    const idRaw = import.meta.env.PUBLIC_METRIKA_ID;
-    const id = Number(idRaw);
-    if (!Number.isFinite(id) || id <= 0) return;
-    const w = window as unknown as {
-      ym?: (id: number, action: string, goal: string) => void;
-    };
-    w.ym?.(id, "reachGoal", goal);
   }
 </script>

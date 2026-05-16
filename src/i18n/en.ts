@@ -33,7 +33,6 @@ export const en: Dictionary = {
     telegramAriaLabel: "Message on Telegram",
     githubAriaLabel: "Author's GitHub",
     privacy: "Privacy policy",
-    cookieSettings: "Cookie settings",
     rss: "RSS",
     copyright: (year) => `© ${year} Alexander Lapygin`,
   },
@@ -277,8 +276,15 @@ export const en: Dictionary = {
   },
   privacy: {
     title: "Privacy policy",
-    body:
-      "The full privacy policy is being prepared. It will be published before the contact form goes live. To reach the operator, see the footer.",
+    paragraphs: [
+      "The operator of alexanderlapygin.com is Alexander Lapygin. For inquiries about personal-data processing, use the email shown in the site footer.",
+      "The site does not process personal data on its server. The contact form uses a Telegram deeplink: clicking «Open in Telegram» builds a URL in the visitor's browser and opens the visitor's Telegram client with a draft message. Form fields are not sent to the site's server. The visitor sends the message from their Telegram client themselves; its handling is governed by the visitor's agreement with Telegram.",
+      "The hosting provider (Beget, Russian Federation) keeps standard HTTP logs: IP address, User-Agent, requested URL. Retention is governed by the provider's policy.",
+      "No third-party analytics counters, advertising scripts, or cookie-consent banners are present. The browser's localStorage may store the theme preference (technical functionality, no consent required).",
+      "When a visitor reaches out via Telegram or email, the author handles the messages as ordinary business correspondence: stored in Telegram and the author's mailbox per those services' policies; retention — up to 12 months from the inquiry or until the engagement concludes.",
+      "Requests to clarify, restrict, delete, or port personal data should be sent to the author's email shown in the footer. Response time — no more than 30 days (152-FZ).",
+      "The date of the last policy update matches the date of the last commit to the site's git repository.",
+    ],
   },
   notFound: {
     title: "Page not found",
