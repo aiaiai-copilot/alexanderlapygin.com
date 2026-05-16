@@ -1,88 +1,76 @@
 # HANDOFF
 
 **Date:** 2026-05-16
-**Branch:** `main` (2 коммита впереди `origin/main` плюс грядущий handoff-коммит; uncommitted: `deploy/nginx/alexanderlapygin-security-headers.conf` — расширен Google Fonts, см. ниже) — последний коммит `0561817` docs(handoff): add prod-vhost upgrade plan (paths A and B) (2026-05-16).
+**Branch:** `main` (4 коммита впереди `origin/main` плюс грядущий handoff-коммит; рабочее дерево чистое) — последний коммит `18dc510` feat(deploy/nginx): allow Google Fonts in CSP (style-src + font-src) (2026-05-16).
 
-`stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, полный TLS, отдельный SBP-backend на :3001. `alexanderlapygin.com` — всё ещё старый React-сайт, но теперь **с security headers и cache-control** (ad-hoc path B этой сессии). Cutover stage→prod не планировался. Архитектура и состояние VPS — в memory `staging-architecture` и `vps-state-snapshot`.
+Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, отдельный SBP-backend на :3001. Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot` (актуализировано 2026-05-16: ufw active default-deny, удалённые артефакты, описание prod-vhost с path B sha256 + backup-путями).
 
-## In-flight context (важно для следующей сессии)
+## In-flight context
 
-### Состояние prod-vhost'а после path B
+### Crucial decision pivot (2026-05-16, конец сессии)
 
-Активный prod-vhost `/etc/nginx/sites-enabled/alexanderlapygin.com.conf` — по-прежнему **обычный файл** (не симлинк), но **с ad-hoc патчем 2026-05-16**, sha256 `29879978f076dd9170dd9166e30fb22a1d6641c75a4c48a458aed69e4b14ed01`. Добавлено:
+Пользователь принял решение **отменить все фичи, требующие подачи уведомления в РКН по ст. 22 152-ФЗ**. Единственный триггер ст. 22 у нас — Яндекс.Метрика с cookies. Форма-deeplink уже не триггерит (decisions.md §1.2). Из вариантов «совсем без аналитики / cookieless self-hosted / отложить» выбрано **совсем без аналитики**.
 
-- server-level `include /etc/nginx/snippets/alexanderlapygin-security-headers.conf;` + `add_header Cache-Control "no-cache" always;` (= D1 fix + 6 security headers)
-- внутри `location ^~ /api/` — повторный `include` snippet'а (nginx-footgun: собственный `add_header Cache-Control` в location сбрасывает наследование add_header'ов с server-уровня; без re-include /api/ не имел бы CSP/HSTS/etc.)
+**Работа по этому скоупу — начата (инвентарь сделан), правки НЕ начаты, НИЧЕГО не закоммичено.** План правок:
 
-CSP-snippet на VPS обновлён: `style-src` теперь включает `https://fonts.googleapis.com`, `font-src` — `https://fonts.gstatic.com` (React-сайт грузит CSS и шрифты с Google Fonts). Та же правка лежит в репо как **uncommitted** `M deploy/nginx/alexanderlapygin-security-headers.conf` (содержимое идентично VPS).
+- `docs/spec/spec.md` §10.1 (аналитика — Метрика, цели), §10.2 (cookies и согласие, баннер «Принять/Отказаться», `localStorage` consent) — **удалить**.
+- `docs/spec/spec.md` §10.3 (privacy policy) — переписать в минимум: «оператор через сайт ПДн не обрабатывает; HTTP-логи Beget; форма передаётся пользователем в Telegram самостоятельно».
+- `docs/spec/spec.md` §10.4 (трансгран) — упростить (Yandex и Cloudflare-веточки убираются).
+- `docs/spec/spec.md` §10.5 (реестр ст. 22.1) и §10.6 (процедура запросов субъекта) — удалить или сильно упростить.
+- `docs/spec/decisions.md` §5 (аналитика), §2.4 (cookie-баннер) — пометить `Status: Reversed (2026-05-16)` с rationale; новый ADR «Отказ от аналитики, не требующей согласия» (соответствует §1.1/§1.2 — минимизация юр-поверхности).
+- `docs/spec/runbook.md` §11 (РКН-уведомления), §13 (цели Метрики) — удалить. В §1 убрать строку `PUBLIC_METRIKA_ID=`.
+- `src/components/ContactPage.astro` строки 444-481 — удалить `trackGoal()` вызовы (4 шт.) + функцию `trackGoal`.
+- `src/components/Footer.astro:93-94` — удалить кнопку `data-cookie-settings` (обработчик и так не подключён).
+- `src/i18n/{ru,en,types}.ts` — удалить `footer.cookieSettings`.
+- `src/components/PrivacyPage.astro` — переписать.
+- `.env`, `.env.example` — убрать строку `PUBLIC_METRIKA_ID=`.
+- `deploy/nginx/alexanderlapygin-security-headers.conf` — суживаем CSP: убрать домены Метрики (`mc.yandex.ru` и связанные) из `script-src`/`img-src`/`connect-src`. После — деплой обновлённого snippet'а на VPS (`scp` + `nginx -t && nginx -s reload`).
+- После всего: `npm run check` (Astro), smoke prod + stage.
 
-Текущее prod-поведение (по smoke curl'у):
-- 6 security headers (HSTS, X-CTO, X-Frame, Referrer, Permissions, CSP) на главной, /contact (SPA fallback), /showcase/payments/sbp/, /api/*, /favicon.ico, /assets/*.
-- `Cache-Control: no-cache` на HTML и (как побочный эффект path B) на hashed React-assets — намеренный минор-trade-off, после Astro cutover'а решится репо-version'ом vhost'а (там /_astro/ → immutable).
-- /api/ сохранил свой `Cache-Control: no-cache, no-store, must-revalidate`.
-- /api/health → 200 (SBP-backend жив).
-- React SPA fallback `try_files $uri $uri/ /index.html` не тронут.
+### Состояние prod-vhost'а (TLDR; подробности — в memory `vps-state-snapshot`)
 
-**Известные регрессии** (минорные, не вводятся path B'ом — были до сессии или приняты осознанно):
-- Hashed React-assets отдаются с no-cache, не immutable (приемлемо до cutover'а).
-- HTTPS-www → HTTPS-apex редирект не работает (legacy vhost объединил оба `server_name` в одном HTTPS server-block'е). Репо-vhost это чинит, но не активен. HTTP-www → HTTPS-apex редирект работает.
+Активный prod-vhost `/etc/nginx/sites-enabled/alexanderlapygin.com.conf` — regular-file (не симлинк), pinned ad-hoc patch'ем 2026-05-16. Path A (replace regular-file → symlink на репо-Astro-vhost) **отложен** до cutover'а stage→prod (репо-vhost под Astro, активация сейчас сломает React-роуты). Бэкапы для отката (snippet + vhost) лежат на VPS в `/root/`, путь и sha256 — в memory `vps-state-snapshot`.
 
-**Backups на VPS для отката:**
-- snippet: `/root/alexanderlapygin-security-headers.conf.pre-fonts-20260516T000218Z.bak`
-- regular-file vhost: `/root/sites-enabled-alexanderlapygin.com.conf.pre-upgrade-20260516T000453Z.bak`
+### Что осталось недоделанным (актуализировано на конец сессии)
 
-Откат любой из них: `ssh root@84.54.29.190 'cp <backup> <target> && nginx -t && nginx -s reload'`.
-
-### Почему путь A (симлинк на репо-version) отложен
-
-Репо-vhost (`deploy/nginx/alexanderlapygin.com.conf` = VPS `sites-available/...`) спроектирован под Astro — per-route HTML, `location / { try_files $uri $uri/index.html =404; }`. Активный legacy regular-file имеет `try_files $uri $uri/ /index.html` (SPA-fallback). Документ-root `/var/www/alexanderlapygin.com/html/` сейчас — React build (один index.html, нет /contact/, /projects/ и т.д., нет /404.html). Активация симлинка сейчас:
-- ✅ главная работает
-- ❌ /contact, /projects/*, /blog, /about при прямом заходе/reload → 404 (default nginx-404, т.к. /404.html в React build тоже нет)
-- ❌ все внешние ссылки на не-root URL сломаются
-
-**Условие пути A**: Astro build в `/var/www/alexanderlapygin.com/html/`. Эффективно = cutover stage→prod. После cutover'а замена regular-file → симлинк становится тривиальной (`rm sites-enabled/...conf && ln -s ../sites-available/alexanderlapygin.com.conf ...`) + повторный smoke.
-
-### Что осталось недоделанным
-
-1. **Закомитить расширенный snippet** (`deploy/nginx/alexanderlapygin-security-headers.conf`) — отдельный коммит. Содержимое уже на VPS.
-2. **Браузерная проверка path B** (на пользователе): prod главная / /contact / /projects/* → DevTools Console → CSP violations? Из CLI было тихо (нет inline-script'ов в bundle, нет внешних script-src запросов), но реальный браузер — единственная честная проверка.
-3. **Cutover stage→prod** — не было в scope ни одной сессии явно, требует отдельной подготовки и решения. После него — путь A (regular-file → симлинк).
-4. **`PUBLIC_METRIKA_ID`** не заведён → `trackGoal` no-op. Цели: `form_submit_telegram`, `form_validation_error`, `mailto_click`, `telegram_direct_click` (runbook §13). CSP уже разрешает домены Метрики.
-5. **Уведомление в РКН по ст. 22 152-ФЗ** — подать ДО публичного cutover'а stage→prod (когда форма начнёт принимать обращения).
-6. **Verify firewall blocks external :3000 и :3001** — оба backend'а биндят 0.0.0.0. Проверить с другой машины: `curl --connect-timeout 5 http://84.54.29.190:3001/` → должен быть refused/timeout.
-7. **Удалить артефакты несостоявшегося cutover'а** (готовы к удалению):
-   - VPS: `/var/www/alexanderlapygin.com/html-old-20260515T204033Z/` (49M, ≥48ч прошло)
-   - VPS: `/var/www/alexanderlapygin.com/showcase/` (16K огрызок Oct 2025)
-   - VPS: `/var/www/alexanderlapygin.com/releases/20260515T204033Z/` (Astro-build prod-cutover'а, не используется stage'м)
-   - VPS: `/tmp/stage-20260515T233747Z.tar.gz` (release tarball первого stage-деплоя)
-   - Локально: `/tmp/stage-20260515T233747Z.tar.gz` + `/tmp/.last-stage-release`
-8. **Вне MVP-scope:**
+1. **Завершить РКН-removal-работу** (см. «Crucial decision pivot» выше). Текущий статус: инвентарь и развилка по аналитике закрыты, правки не начаты, не закоммичено. **Приоритет следующей сессии.**
+2. **Cutover stage→prod** — крупный scope. Включает: deploy Astro в `/var/www/alexanderlapygin.com/html/`, активация репо-vhost (path A: regular-file → симлинк), 301-редиректы старых React-URL'ов если важно для SEO, smoke план, rollback план. Пред-чек по правилу [[check-publish-readiness-before-cutover]]: контент готов, формы работают, 404/sitemap/robots/OG ok. Делается после #1.
+3. **Defense-in-depth** (не критично пока ufw в силе): сменить bind SBP-backend'ов с `0.0.0.0` на `127.0.0.1` в `sbp-backend.service` (prod, :3000) и `sbp-backend-stage.service` (stage, :3001). Артефакты в репо: `deploy/systemd/*.service`.
+4. **Вне MVP-scope:**
    - GitHub Actions: push в `main` → деплой на stage. Удалить старый wrangler workflow, `wrangler` из `devDependencies` (`package.json`).
    - Cloudflare Pages-прототип `alexanderlapygin-prototype.pages.dev` отключить + удалить.
    - Опционально: prod SBP-backend `.env` перенести из `legacy/.../backend/.env` в `/etc/sbp-backend/prod.env` (симметрия со stage).
+
+**Вычеркнуто из предыдущего списка** (закрыто этой сессией или scope pivot'ом):
+- ~~#1 коммит расширенного snippet'а~~ → `18dc510` ✅
+- ~~#2 браузерная проверка path B~~ ✅ (пользователь прогнал DevTools, CSP-нарушений нет)
+- ~~#4 `PUBLIC_METRIKA_ID`~~ — отменено scope-pivot'ом (Метрика убирается целиком).
+- ~~#5 уведомление в РКН ст. 22~~ — отменено scope-pivot'ом (триггер устраняется).
+- ~~#6 verify firewall :3000/:3001~~ ✅ (внешние блокированы ufw'ом).
+- ~~#7 удалить артефакты несостоявшегося cutover'а~~ ✅.
 
 ## Session 2026-05-16
 
 ### Что сделано
 
-- **CSP-аудит React prod-сайта** (статически, без браузера): main HTML + /contact, /projects, /blog, /about (все 1422B — единая SPA shell), `assets/index-x1YQXxU-.js` (388 KB: нет eval/new Function/document.write/inline-script-инъекций; `createElement("link")` × 2 — Vite modulepreload polyfill (self), `createElement("style")` × 1 — runtime CSS injection = разрешено `'unsafe-inline'`; `innerHTML` × 3 — React SVG internals, CSP без trusted-types это не блокирует), `assets/index-B_RORPG1.css` (нет `url()`/`@import`/`data:`/внешних). Найдены 2 внешних ресурса: `https://fonts.googleapis.com` (CSS) и `https://fonts.gstatic.com` (font).
-- **Snippet расширен**: `style-src ... https://fonts.googleapis.com`, `font-src 'self' https://fonts.gstatic.com`. Деплой на VPS (с backup'ом), nginx -t + reload. Сначала задействован на stage (он Google Fonts не использует — реально no-op для него, но проверил что не сломалось).
-- **Path A (replace regular-file → symlink) аборт**: diff активного regular-file vs sites-available (репо-Astro) показал критичную дивергенцию `location /` (SPA-fallback vs `=404`). Симлинк сейчас сломал бы React-сайт на всех non-root роутах. Backup активного vhost'а сделан до аборта (см. «Backups» выше).
-- **Path B (расширенный) применён** к активному regular-file: server-level `include` snippet'а + `Cache-Control "no-cache"`; в `location ^~ /api/` повторный `include` snippet'а. nginx -t ok, reload ok. Smoke curl: security headers на всех проверенных endpoint'ах, HTML body байт-идентичен пре-патчу, React SPA fallback цел, /api/health 200.
+- **#7 (cleanup).** Удалено на VPS: `/var/www/alexanderlapygin.com/showcase/` (16K, top-level orphan, не путать с live-mini-app в `/html/showcase/`), `/var/www/alexanderlapygin.com/releases/20260515T204033Z/` + пустой `releases/`, `/tmp/stage-20260515T233747Z.tar.gz`. Локально: `/tmp/stage-20260515T233747Z.tar.gz`, `/tmp/.last-stage-release`. Post-cleanup smoke prod: main 200, /showcase/payments/sbp/ 200, /api/health 200.
+- **#6 (firewall).** Подтверждено, что внешние :3000/:3001 БЫЛИ открыты (curl с другого IP → JSON 200, идентичный 127.0.0.1:3000 на VPS). Включён ufw: `default deny incoming`, `allow 22/80/443` (TCP, v4+v6), `--force enable`. Smoke после: внешние :3000/:3001 → timeout 8s code 000, :443 main/api/health → 200, SSH живой, fail2ban-rule (`active`, 2 banned) сохранил REJECT поверх ufw-chains в INPUT.
+- **#2 (browser path B verify).** Пользователь прогнал DevTools/Console на проде по /, /contact, /projects, /showcase/payments/sbp/. CSP-нарушений нет. На `/projects` информационный лог из React-NotFound (роут не зарегистрирован в текущей React-сборке) — **не** CSP issue, SPA fallback nginx → React-Router → NotFound отрабатывает корректно.
+- **Memory `vps-state-snapshot` актуализирован:** ufw active с 2026-05-16, удалённые артефакты помечены (`~~strikethrough~~`), prod-vhost описан с path B sha256 + backup-путём, defense-in-depth (bind 127.0.0.1) — как отложенное.
+- **Major scope pivot (см. In-flight context).** Инвентарь файлов под РКН-removal сделан, развилка по аналитике закрыта («совсем без аналитики»). Сами правки **ещё не начаты**.
 
 ### Коммиты этой сессии
 
-- `<этот handoff-коммит>` docs(handoff): update for session 2026-05-16 (path B prod patch)
+- `18dc510` feat(deploy/nginx): allow Google Fonts in CSP (style-src + font-src) — закоммичен пользователем в начале сессии (был uncommitted, см. предыдущий HANDOFF #1)
+- `<этот handoff-коммит>` docs(handoff): update for session 2026-05-16 (firewall + cleanup + scope pivot)
 
-snippet-правка `deploy/nginx/alexanderlapygin-security-headers.conf` пока **в working tree некомитнутая** — см. «Осталось недоделанным» #1.
+Изменения firewall'а на VPS и чистка артефактов — не в git (это VPS-state, не репо-конфиг).
 
 ### Локальное состояние (не в git)
 
-- `deploy/nginx/alexanderlapygin-security-headers.conf` — uncommitted, идентично копии на VPS.
-- `/tmp` на ноуте: `prod-active-vhost.conf` (применённая версия), `prod-active-vhost-original.conf` (pre-patch снимок), `prod-index.html`/`prod-postpatch.html`, `prod-bundle.js`/`prod-bundle.css`, `stage-index.html`/`stage-index2.html`. Артефакты CSP-аудита и smoke'ов; можно удалить.
+- **VPS:** `ufw active` (default-deny incoming, allow 22/80/443) — новое относительно snapshot'а до сессии. Backups snippet'а и vhost'а в `/root/` — на месте.
+- **Локально:** рабочее дерево чистое.
 
-### Побочные эффекты на VPS (`84.54.29.190`)
+### Осталось недоделанным
 
-- `/etc/nginx/snippets/alexanderlapygin-security-headers.conf` — обновлён (Google Fonts добавлены). Backup в `/root/`.
-- `/etc/nginx/sites-enabled/alexanderlapygin.com.conf` — пропатчен (path B). Backup в `/root/`.
-- nginx reload'ен дважды (после snippet, после vhost patch).
+См. блок «Что осталось недоделанным» в In-flight context. Главное: РКН-removal-работа начата (инвентарь+развилка), правки **не сделаны** — это блокер #1 для следующей сессии. Затем — cutover stage→prod (#2).
