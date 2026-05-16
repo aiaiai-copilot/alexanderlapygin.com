@@ -1,15 +1,15 @@
 # HANDOFF
 
 **Date:** 2026-05-16
-**Branch:** `main` (5 коммитов впереди `origin/main` плюс грядущий handoff-коммит; рабочее дерево содержит **12 uncommitted-файлов от РКН-removal**) — последний коммит `4364a9d` docs(handoff): update for session 2026-05-16 (firewall + cleanup + scope pivot) (2026-05-16).
+**Branch:** `main` (7 коммитов впереди `origin/main` плюс грядущий handoff-коммит; рабочее дерево чистое) — последний коммит `d4b70b8` refactor: remove analytics surface (Metrika, cookies, RKN notifications) (2026-05-16).
 
 Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, отдельный SBP-backend на :3001. Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
 ## In-flight context
 
-### РКН-removal — реализовано локально, не закоммичено (2026-05-16)
+### РКН-removal — закоммичен (`d4b70b8`, 2026-05-16)
 
-Скоуп-pivot из прошлой сессии (отказ от Метрики и всего, что триггерит ст. 22 152-ФЗ) — **реализован в коде, документации и CSP snippet'е**. `npm run check` (0 errors / 0 warnings), `npm run build` (20 страниц, 731 ms). Все 12 затронутых файлов изменены, **ничего не закоммичено** — пользователь интерраптнул коммит и переключился на /handoff. Деталь правок — в Session-блоке ниже. Предполагаемый коммит: `refactor: remove analytics surface (Metrika, cookies, RKN notifications)`.
+Скоуп-pivot из прошлой сессии (отказ от Метрики и всего, что триггерит ст. 22 152-ФЗ) реализован и закоммичен: код, документация (spec/decisions/runbook), CSP snippet, README, env-шаблон. Подробности — `git show d4b70b8`. `npm run check` 0/0, `npm run build` ok (20 страниц, 731 ms). На VPS ничего ещё не задеплоено (см. ниже).
 
 ### Состояние prod-vhost'а (TLDR; подробности — в memory `vps-state-snapshot`)
 
@@ -19,20 +19,19 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
 
 ### Что осталось недоделанным (актуализировано на конец сессии)
 
-1. **Закоммитить РКН-removal-правки** (12 uncommitted-файлов, см. Session-блок). Затем — обновить HANDOFF, чтобы вырезать Session-блок этой сессии. **Приоритет следующей сессии.**
-2. **Деплой обновлённого CSP snippet'а на VPS** (prod + stage). См. «Состояние prod-vhost'а» выше. После коммита.
-3. **Cutover stage→prod** — крупный scope. Включает: deploy Astro в `/var/www/alexanderlapygin.com/html/`, активация репо-vhost (path A: regular-file → симлинк), 301-редиректы старых React-URL'ов если важно для SEO, smoke план, rollback план. Пред-чек по правилу [[check-publish-readiness-before-cutover]]: контент готов, формы работают, 404/sitemap/robots/OG ok. Делается после #1 и #2.
-4. **Defense-in-depth** (не критично пока ufw в силе): сменить bind SBP-backend'ов с `0.0.0.0` на `127.0.0.1` в `sbp-backend.service` (prod, :3000) и `sbp-backend-stage.service` (stage, :3001). Артефакты в репо: `deploy/systemd/*.service`.
-5. **Вне MVP-scope:**
+1. **Деплой обновлённого CSP snippet'а на VPS** (prod + stage). `scp deploy/nginx/alexanderlapygin-security-headers.conf root@84.54.29.190:/etc/nginx/snippets/` + `ssh root@84.54.29.190 'nginx -t && nginx -s reload'` + smoke prod/stage. **Приоритет следующей сессии.**
+2. **Cutover stage→prod** — крупный scope. Включает: deploy Astro в `/var/www/alexanderlapygin.com/html/`, активация репо-vhost (path A: regular-file → симлинк), 301-редиректы старых React-URL'ов если важно для SEO, smoke план, rollback план. Пред-чек по правилу [[check-publish-readiness-before-cutover]]: контент готов, формы работают, 404/sitemap/robots/OG ok. Делается после #1.
+3. **Defense-in-depth** (не критично пока ufw в силе): сменить bind SBP-backend'ов с `0.0.0.0` на `127.0.0.1` в `sbp-backend.service` (prod, :3000) и `sbp-backend-stage.service` (stage, :3001). Артефакты в репо: `deploy/systemd/*.service`.
+4. **Вне MVP-scope:**
    - GitHub Actions: push в `main` → деплой на stage. Удалить старый wrangler workflow, `wrangler` из `devDependencies` (`package.json`).
    - Cloudflare Pages-прототип `alexanderlapygin-prototype.pages.dev` отключить + удалить.
    - Опционально: prod SBP-backend `.env` перенести из `legacy/.../backend/.env` в `/etc/sbp-backend/prod.env` (симметрия со stage).
 
-## Session 2026-05-16 (РКН-removal — uncommitted)
+## Session 2026-05-16 (РКН-removal — committed `d4b70b8`)
 
 ### Что сделано
 
-Реализован весь скоуп РКН-removal'а, запланированный прошлой сессией. Все правки локальные, **не закоммичены**. Pass: `npm run check` 0/0, `npm run build` ok (20 страниц, 731 ms).
+Реализован весь скоуп РКН-removal'а, запланированный прошлой сессией. Закоммичено в `d4b70b8` (12 файлов, +102/-274). Pass: `npm run check` 0/0, `npm run build` ok (20 страниц, 731 ms). Деталь правок ниже сохранена как развёрнутый комментарий к коммиту; в следующем `/handoff`-вырезании можно убрать целиком (всё восстановимо через `git show d4b70b8` и `git show 613ec1c:HANDOFF.md`).
 
 - **Код:**
   - `src/components/ContactPage.astro` — удалена функция `trackGoal()` и все 4 её вызова (`form_validation_error`, `form_submit_telegram`, `mailto_click`, `telegram_direct_click`).
@@ -77,15 +76,15 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
 
 ### Коммиты этой сессии
 
-- `<этот handoff-коммит>` docs(handoff): update for session 2026-05-16 (РКН-removal в коде, uncommitted)
-
-РКН-removal-правки **не закоммичены** — пользователь интерраптнул коммит и переключился на /handoff. Предполагаемое сообщение коммита: `refactor: remove analytics surface (Metrika, cookies, RKN notifications)`.
+- `613ec1c` docs(handoff): update for session 2026-05-16 (РКН-removal в коде, uncommitted)
+- `d4b70b8` refactor: remove analytics surface (Metrika, cookies, RKN notifications)
+- `<этот handoff-коммит>` docs(handoff): mark РКН-removal as committed (d4b70b8)
 
 ### Локальное состояние (не в git)
 
-- **Локально:** 12 uncommitted-файлов с РКН-removal-правками (см. выше). `.env` обновлён локально (`PUBLIC_METRIKA_ID` строка удалена) — gitignored, не в diff.
-- **VPS:** без изменений в этой сессии. **Прод-snippet ещё содержит старую CSP** с `mc.yandex.*`/`yastatic.net` — не уязвимость, но рассинхрон с репо после коммита.
+- **Локально:** рабочее дерево чистое. `.env` — изменён локально (`PUBLIC_METRIKA_ID` строка удалена) — gitignored.
+- **VPS:** без изменений в этой сессии. **Прод-snippet всё ещё содержит СТАРУЮ CSP** с `mc.yandex.*`/`yastatic.net` — не уязвимость, но рассинхрон с репо. Деплой snippet'а — приоритет #1 в недоделанном.
 
 ### Осталось недоделанным
 
-См. блок «Что осталось недоделанным» в In-flight context. Главное: #1 коммит, #2 деплой snippet'а на VPS — оба блокеры до #3 (cutover).
+См. блок «Что осталось недоделанным» в In-flight context. Главное: #1 — деплой обновлённого CSP snippet'а на VPS.
