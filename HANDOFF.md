@@ -1,7 +1,7 @@
 # HANDOFF
 
 **Date:** 2026-05-17
-**Branch:** `main` (впереди `origin/main` на 6 коммитов — Phase 1 `c2da2a1` + Phase 2 `9777ca9` + Phase 3 `25ef234` + Phase 3 fix `367882a` + 2 handoff'а; рабочее дерево чистое) — последний содержательный коммит `367882a` fix(home): kind-aware project links + sort featured + rename isoDate (2026-05-17), не запушен.
+**Branch:** `main` (впереди `origin/main` на 8 коммитов — Phases 1-4 контент-трека + Phase 3 fix `367882a` + 3 handoff'а; рабочее дерево чистое) — последний содержательный коммит `7e93350` feat(branding,deploy): add EN og:image and nginx alias for legacy portfolio (2026-05-17), не запушен.
 
 Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, **обновлён 2026-05-17** до релиза `20260516T221717Z` (CSP-фикс: все скрипты внешние, theme toggle и mobile menu работают под строгим `script-src 'self'`; всё, что было в предыдущем релизе `20260516T212815Z`, тоже здесь — sitemap, RSS per-locale, og:image, favicon-стек, twitter:card, очищенная карточка minimal-backend). Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
@@ -23,68 +23,68 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
 
 ### Что осталось недоделанным
 
-1. **Контент-трек pre-cutover** — **Phases 1-3 закрыты** (`c2da2a1`, `9777ca9`, `25ef234` + fix `367882a`), Phase 4 ожидает имплементации:
-   - Спека: `docs/superpowers/specs/2026-05-17-content-seed-from-prod-design.md`.
-   - План: `docs/superpowers/plans/2026-05-17-content-seed-from-prod.md` — 14 tasks × 4 фазы (по одному атомарному коммиту на фазу + опциональные follow-up fix'ы из code-review):
-     - **Phase 1 (Tasks 1-5, seed контент) — DONE `c2da2a1`.** 13 новых файлов + 2 модификации.
-     - **Phase 2 (Tasks 6-9, i18n rewrite + HomePage rename/tagline) — DONE `9777ca9`.** 4 файла: `types.ts` + `ru.ts` + `en.ts` + `HomePage.astro`.
-     - **Phase 3 (Task 10, HomePage rewire to `getCollection`) — DONE `25ef234` + fix `367882a`.** 1 файл: `HomePage.astro`. Fix-commit добавил kind-aware маршрутизацию ссылок (mirror `ProjectsCatalog.astro`: client → internal `/projects/<slug>`, personal → `liveUrl ?? repoUrl ?? "#"` с `target="_blank"`, saas → `liveUrl ?? "#"` или disabled `<div>` при `comingSoon`) — pseudocode плана производил 404'ы для personal/saas карточек, так как `pages/projects/[slug].astro` строится только из `projects-client`. Plus sort `featuredFirst` by pubDate desc, plus rename локальной `formatDate` → `isoDate` (избегает name-collision с `~/lib/format`'s `formatDate`).
-     - Phase 4 (Tasks 11-14): og-en SVG + locale-conditional og:image + nginx `/portfolio/` alias → `feat(branding,deploy): add EN og:image and nginx alias for legacy portfolio`.
-   - **Подход исполнения (выбран пользователем, подтверждён в Phases 1-3):** `superpowers:subagent-driven-development` (по одному implementer-subagent'у на task + spec review + quality review + final integration review на цельный phase-коммит). Применить тот же flow к Phase 4 в **новой сессии**.
-   - Прод-исходник для seed'а: `~/Projects/mind-section-dev-portfolio-by-lovable` (отдельный локальный репо, git-history present).
-   - Backup для legacy URL'ов: `backups/alexanderlapygin.com-pre-cutover-20260515T204033Z.tar.gz` — все 5 portfolio/showcase подпутей имеют prerendered `index.html`, SPA-fallback не нужен (`/showcase/` nginx-блок уже есть в `deploy/nginx/alexanderlapygin.com.conf:87-115`, Phase 4 добавляет только `/portfolio/`).
-   - Open Q в спеке (default'ы можно override перед Phase 2): Q1 — about-timeline keep stage (а не прод-данные VDI/Rosbank/T-Bank); Q2 — heroTagline через `\n` + CSS `white-space: pre-line` (без HTML-инъекции).
-   - Открытые элементы спеки §7 (требуют авторской работы, не блокируют коммиты фаз, но блокируют cutover): реальный `liveUrl` для `voice-to-spec` (сейчас `-tbd` placeholder в `c2da2a1`); реальный body для `llm-spec-tools` (placeholder body «## Цель / ## Состояние» добавлен в `c2da2a1`); EN/RU-переводы single-locale showcase'ов (oauth EN-only, telegram EN-only, sbp RU-only); body для EN-solutions `spec-trio` и `static-site-with-ssr` (skeleton'ы созданы в `c2da2a1`); подготовка `/var/www/alexanderlapygin.com/legacy/` extraction на VPS (на cutover'е); ручной дизайн `og-en.svg` (Phase 4 имплементируется, но контент SVG — авторский).
+1. **Контент-трек pre-cutover — ВСЕ 4 ФАЗЫ ЗАКРЫТЫ ЛОКАЛЬНО** (`c2da2a1` + `9777ca9` + `25ef234` + fix `367882a` + `7e93350`). Spec: `docs/superpowers/specs/2026-05-17-content-seed-from-prod-design.md`. План: `docs/superpowers/plans/2026-05-17-content-seed-from-prod.md`.
+   - Phase 1 (`c2da2a1`): seed posts/projects из прод-источника.
+   - Phase 2 (`9777ca9`): i18n rewrite + HomePage rename/tagline.
+   - Phase 3 (`25ef234` + fix `367882a`): HomePage rewire на `getCollection` + kind-aware project links.
+   - Phase 4 (`7e93350`): og-en.svg + locale-conditional og:image/twitter:image в BaseLayout + nginx `/portfolio/` alias.
+   - **Подход исполнения (подтверждён в Phases 1-4):** `superpowers:subagent-driven-development` (по одному implementer-subagent'у на task + spec review + quality review + final integration review на цельный phase-коммит).
+   - Открытые элементы спеки §7 (требуют авторской работы, не блокируют коммиты фаз, но блокируют cutover): реальный `liveUrl` для `voice-to-spec` (сейчас `-tbd` placeholder в `c2da2a1`); реальный body для `llm-spec-tools` (placeholder body «## Цель / ## Состояние» добавлен в `c2da2a1`); EN/RU-переводы single-locale showcase'ов (oauth EN-only, telegram EN-only, sbp RU-only); body для EN-solutions `spec-trio` и `static-site-with-ssr` (skeleton'ы созданы в `c2da2a1`); подготовка `/var/www/alexanderlapygin.com/legacy/` extraction на VPS (на cutover'е); ручной редизайн `og-en.svg` если автор хочет более полированный визуал (сейчас — структурная копия `og.svg` с латинской типографикой).
 
-2. **Cutover stage→prod** (после контент-трека — единственный оставшийся блокер; CSP-фикс закрыт в `cece042`):
+2. **Redeploy stage с актуальным build'ом** — отдельная сессия. Текущий stage-релиз `20260516T221717Z` от 2026-05-17 включает только технический трек + CSP-фикс; **контент-трек Phases 1-4 ещё НЕ задеплоен на stage**. Перед redeploy: `npm run build` локально → upload `dist/` → `/var/www/alexanderlapygin.com/stage-releases/<новый-TS>/` → atomic switch `stage-html` симлинка. Smoke по спеке §5 + добавить `/portfolio/living-tags/living-tags-prototype/` (рекомендация из final integration review Phase 4 — spec'овый smoke-loop сейчас покрывает только Astro-URL'ы).
+
+3. **Cutover stage→prod** (после redeploy stage + smoke — единственный оставшийся блокер; CSP-фикс закрыт в `cece042`):
    - Pre-check повтор: блокеры из контент-трека закрыты, остальные ranking'ом OK.
-   - Свежий redeploy stage с актуальным build'ом + смоук перед cutover'ом (текущий stage-релиз `20260516T221717Z` от 2026-05-17 включает технический трек + CSP-фикс; контент-трек Phases 1-3 + Phase 4 ещё НЕ задеплоен на stage — пересобрать после закрытия Phase 4).
    - Релизная цепочка prod как на stage: `/var/www/alexanderlapygin.com/html/` → симлинк на `releases/<TS>/` (atomic switch).
    - Deploy Astro в новый `releases/<TS>/`.
    - Path A vhost: `cp /etc/nginx/sites-enabled/alexanderlapygin.com.conf /root/...pre-upgrade-<TS>.bak` → `rm` regular-file → `ln -s ../sites-available/alexanderlapygin.com.conf` → `nginx -t && nginx -s reload`.
-   - 301-редиректы (если решено в контент-треке).
-   - Smoke prod (все ключевые URL'ы 200, формы работают, CSP/headers совпадают со stage, `certbot renew --dry-run` ok).
+   - VPS-side: распаковка `backups/alexanderlapygin.com-pre-cutover-20260515T204033Z.tar.gz` в `/var/www/alexanderlapygin.com/legacy/` (showcase + portfolio sub-SPAs). Удалить `legacy/showcase/payments/sbp/backend/.env` перед публикацией (sensitive). nginx `/showcase/` блок уже есть, `/portfolio/` добавлен Phase 4'ом.
+   - 301-редиректы (если решено).
+   - Smoke prod (все ключевые URL'ы 200, **включая `/portfolio/living-tags/living-tags-prototype/`**, формы работают, CSP/headers совпадают со stage, `certbot renew --dry-run` ok).
    - Rollback план держать рядом на каждом шаге.
 
-3. **Defense-in-depth** (не критично пока ufw в силе): сменить bind SBP-backend'ов с `0.0.0.0` на `127.0.0.1` в `sbp-backend.service` (prod, :3000) и `sbp-backend-stage.service` (stage, :3001). Артефакты в репо: `deploy/systemd/*.service`.
+4. **Defense-in-depth** (не критично пока ufw в силе): сменить bind SBP-backend'ов с `0.0.0.0` на `127.0.0.1` в `sbp-backend.service` (prod, :3000) и `sbp-backend-stage.service` (stage, :3001). Артефакты в репо: `deploy/systemd/*.service`.
 
-4. **Вне MVP-scope:**
+5. **Вне MVP-scope:**
    - GitHub Actions: push в `main` → деплой на stage. Удалить старый wrangler workflow, `wrangler` из `devDependencies` (`package.json`).
    - Cloudflare Pages-прототип `alexanderlapygin-prototype.pages.dev` отключить + удалить.
    - Опционально: prod SBP-backend `.env` перенести из `legacy/.../backend/.env` в `/etc/sbp-backend/prod.env` (симметрия со stage).
    - Cleanup `.wrangler/` (в `.gitignore` отсутствует — артефакт CF Pages лежит в репо).
    - `package.json` script для `node src/scripts/build-branding-assets.mjs` (сейчас запускается вручную — discoverability ноль).
+   - CI guard на «edited og-en.svg but forgot to commit og-en.png» (из Phase 4 final review).
 
-## Session 2026-05-17 (седьмая сессия дня)
+## Session 2026-05-17 (восьмая сессия дня)
 
 ### Что сделано
 
-- Phase 3 контент-трека (Task 10 плана) выполнена через `superpowers:subagent-driven-development`. Flow: 1 implementer-subagent (sonnet) → spec compliance review (sonnet) APPROVED → code-quality review (sonnet) → 1 fix-implementer (sonnet) на найденные issues → re-review (sonnet) APPROVED → финальный integration review (opus) READY_TO_MERGE.
-- Изменения — только в `src/components/HomePage.astro`, 2 атомарных коммита:
-  - `25ef234` feat(home): rewire featured projects and latest posts to content collections — заменил `[1,2,3].map` placeholders на `getCollection` (`projects-client` + `projects-personal` + `projects-saas`, фильтр по `lang`, featured-first + pubDate desc, slice 3) и `posts` (фильтр по `lang+!draft`, pubDate desc, slice 3). Drop hardcoded «5 мин». Sections collapse при пустой коллекции.
-  - `367882a` fix(home): kind-aware project links + sort featured + rename isoDate — code-review нашёл, что literal-pseudocode плана клал ВСЕ типы карточек на `/projects/<slug>`, но `pages/projects/[slug].astro` строится только из `projects-client` → personal/saas карточки получали 404. Fix mirror'ит `ProjectsCatalog.astro`: client → internal `/projects/<slug>`, personal → `liveUrl ?? repoUrl ?? "#"` `target="_blank" rel="noopener"` + external-link SVG icon, saas → `liveUrl ?? "#"` `target="_blank"` или disabled `<div>` при `p.data.comingSoon` (с "Coming soon" badge + `opacity: 0.7`). Plus sort `featuredFirst` by pubDate desc (был order-indeterminate при >1 featured), plus rename локальной `formatDate` → `isoDate` (избегает name-collision с `~/lib/format`'s `formatDate`).
-- Build/check (финальным reviewer'ом): `npm run check` 0/0 (64 pre-existing Zod-deprecation hint'а в `content.config.ts`); `npm run build` — 26 страниц без ошибок. Все `/projects/<slug>` ссылки с главной разрешаются в существующие static-страницы (`voice-to-spec` на RU; EN homepage имеет 0 client-карточек, так как `projects-client/en/*` пуст — все 3 EN-карточки внешние personal); personal/saas карточки рендерятся с `target="_blank" rel="noopener"`; `scoped-tasks` (saas, `comingSoon: true`) — как disabled `<div>`.
-- Зафиксированные минорные не-блокеры (для контекста, не для рефакторинга):
-  - Personal-карточка с пустыми `liveUrl` и `repoUrl` ушла бы в `href="#" target="_blank"` (degenerate case; в seed-data таких записей нет, `llm-spec-tools` без `liveUrl` корректно фолбэчится на `repoUrl`). `ProjectsCatalog.astro:71` использует условный `target` — homepage этот нюанс не зеркалит.
-  - `HomePage.astro` вырос до 306 строк; 3 почти-одинаковых card-shell блока (client / personal / saas) — кандидат на будущий `<ProjectCard>`-компонент, но per CLAUDE.md «three similar lines is better than premature abstraction» — оставлено как есть.
-  - EN homepage сейчас рендерит 3 personal-карточки и 0 client/saas (content-coverage state, не code defect). Если author захочет featured client-карточку на EN — нужны EN-переводы `projects-client/*` (на сегодня их нет; §7 open items упоминают только showcase'ы).
+- Phase 4 контент-трека (Tasks 11-14 плана) выполнена через `superpowers:subagent-driven-development`. Flow per task: 1 implementer-subagent (sonnet) → spec compliance review (sonnet) → code-quality review (sonnet) → mark complete. После Task 14 — финальный integration review всей Phase 4 (opus) READY_TO_MERGE + Cutover READY.
+- Контентный трек теперь **полностью закрыт локально** (4 атомарных phase-коммита: `c2da2a1`, `9777ca9`, `25ef234`+fix `367882a`, `7e93350`).
+- Phase 4 — единый коммит на 5 файлов:
+  - `7e93350` feat(branding,deploy): add EN og:image and nginx alias for legacy portfolio
+- Изменения по файлам:
+  - `src/assets/branding/og-en.svg` (NEW, 13 строк) — структурная копия `og.svg`, только 3 текстовые замены: `АЛ`→`AL`, `Александр Лапыгин`→`Alexander Lapygin`, `Независимый разработчик`→`Independent developer`. ViewBox/координаты/шрифты/цвета bit-for-bit идентичны.
+  - `public/og-en.png` (NEW, 1200×630 RGBA PNG, 25579 байт) — сгенерирован скриптом.
+  - `src/scripts/build-branding-assets.mjs` — добавлен блок `// 1b. og-en.png` сразу после `// 1. og.png` (тот же `rasterize` helper); финальный лог обновлён с «4 assets» на «5 assets».
+  - `src/layouts/BaseLayout.astro` — в frontmatter добавлен `const ogImagePath = locale === "en" ? "/og-en.png" : "/og.png"` (strict `===`, неизвестные локали падают на RU); хардкоженный `/og.png` заменён на `ogImagePath` в двух местах: `og:image` (line 69) **и** `twitter:image` (line 74). `twitter:image` обновлён сверх spec'а для consistency — обоснование в integration review: spec явно запрещал менять только `twitter:card` (тип карточки, без path), а `twitter:image` концептуально всегда дублировал `og:image`. Bonus: `og:image:alt` уже использует `dict.meta.siteAuthor` (RU «Александр Лапыгин» / EN «Alexander Lapygin»), так что alt автоматически стал locale-aware.
+  - `deploy/nginx/alexanderlapygin.com.conf` — вставлен `location ^~ /portfolio/` блок (25 строк, между `/showcase/` close на line 115 и immutable-cache comment на line 117). Структурная копия `/showcase/` минус `backend/` exclusion (portfolio не имеет server-side компонентов). `root /var/www/alexanderlapygin.com/legacy;` + same security-headers include + `try_files $uri $uri/index.html =404;`. Live `nginx -t` отложен до cutover'а (snippet path существует только на VPS).
+- Build/check: `npm run check` 0/0 (64 pre-existing Zod-deprecation hint'а), `npm run build` 26 страниц success. Спот-чек dist: RU pages (`/`, `/about/`, `/projects/voice-to-spec/`, `/404/`) → `og.png`; EN pages (`/en/`, `/en/about/`, `/en/blog/sdd-intro/`, `/en/404/`) → `og-en.png`. Оба meta-тега (og:image + twitter:image) согласованы на каждой странице.
+- Final integration review (opus): READY_TO_MERGE + Cutover READY. Полезная рекомендация на cutover — добавить `https://alexanderlapygin.com/portfolio/living-tags/living-tags-prototype/` в smoke-loop (sect §5 покрывает только Astro-URL'ы, не portfolio alias).
 
 ### Коммиты этой сессии
 
-- `25ef234` feat(home): rewire featured projects and latest posts to content collections
-- `367882a` fix(home): kind-aware project links + sort featured + rename isoDate
+- `7e93350` feat(branding,deploy): add EN og:image and nginx alias for legacy portfolio
 - (handoff-коммит этой сессии)
 
 ### Локальное состояние (не в git)
 
-- Никаких фоновых процессов не оставлено: dev-серверы, поднятые subagent'ами для smoke-проверок (`npm run dev` на 4321), убивались тем же subagent'ом после verify-блоков.
-- На VPS — без изменений (никаких деплоев в этой сессии). Stage retention: 3 релиза, активный — `20260516T221717Z` (Phase 3 ещё НЕ задеплоен на stage).
+- Никаких фоновых процессов: subagent'ы, поднимавшие `npm run dev` для smoke-проверок, убирали их сами.
+- На VPS — без изменений (нет деплоев в этой сессии). Stage retention: активный релиз `20260516T221717Z`. Контент-трек Phases 1-4 **не задеплоен на stage** (ждёт redeploy в следующей сессии).
 
 ### Осталось недоделанным
 
 Следующая сессия:
 
-1. **Phase 4 контент-трека** (Tasks 11-14): og-en.svg (рисовать вручную — copy og.svg + replace АЛ→AL и RU→EN), расширить `build-branding-assets.mjs` (+og-en pipeline), locale-conditional og:image в `BaseLayout.astro`, nginx `location ^~ /portfolio/` блок (зеркало `/showcase/`). Тот же `superpowers:subagent-driven-development` flow.
-2. После Phase 4 — redeploy stage (`/var/www/alexanderlapygin.com/stage-releases/<TS>/` + atomic symlink) + smoke по спеке §5. Отдельная сессия перед cutover'ом.
+1. **Redeploy stage** с актуальным build'ом (содержит все 4 phase-коммита). Mechanism — как для текущего `stage-releases/20260516T221717Z`: `npm run build` локально → upload `dist/` → `/var/www/alexanderlapygin.com/stage-releases/<новый-TS>/` → atomic switch `stage-html` симлинка. Smoke по спеке §5 + добавить `/portfolio/living-tags/living-tags-prototype/`. На этом stage будет готов под cutover.
+2. После redeploy stage + smoke — cutover stage→prod (см. общий блок «Что осталось недоделанным» п.3 в начале файла).
 
-Дальше по общему блоку «Что осталось недоделанным» в начале файла: открытые элементы спеки §7 (авторская работа), cutover stage→prod, defense-in-depth, вне-MVP cleanup.
+Дальше по общему блоку: открытые элементы спеки §7 (авторская работа — реальный `liveUrl` для voice-to-spec, body для llm-spec-tools, single-locale переводы, EN-solutions bodies), defense-in-depth, вне-MVP cleanup.
