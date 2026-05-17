@@ -1,5 +1,6 @@
 ---
-import { localizedPath, t, type Locale } from "~/i18n";
+import { getCollection } from "astro:content";
+import { t, type Locale } from "~/i18n";
 
 interface Props {
   locale: Locale;
@@ -7,53 +8,15 @@ interface Props {
 const { locale } = Astro.props;
 const dict = t(locale);
 
-const cards = locale === "ru"
-  ? [
-      {
-        category: "Контент-сайт",
-        title: "Витрина с минимальным backend",
-        description:
-          "Astro + статика + одна SSR-точка для формы обращения. CSP, темы, локализация.",
-        features: ["Двуязычная инфраструктура", "Темы оформления", "Контактная форма с защитой от спама"],
-      },
-      {
-        category: "Документация",
-        title: "Техническая спецификация продукта",
-        description:
-          "Связка spec / decisions / runbook — три уровня детализации, рассчитанные и на людей, и на LLM-ассистентов.",
-        features: ["Формальные критерии приёмки", "Журнал решений с альтернативами", "Эксплуатационный runbook"],
-      },
-      {
-        category: "Инфраструктура",
-        title: "Линейный продакшен на VPS",
-        description:
-          "nginx + systemd + certbot + logrotate. Без Kubernetes, без Docker, без vendor lock-in.",
-        features: ["Атомарные деплои с откатом", "Мониторинг uptime", "Полный контроль над инфраструктурой"],
-      },
-    ]
-  : [
-      {
-        category: "Content site",
-        title: "Showcase with minimal backend",
-        description:
-          "Astro + static + a single SSR endpoint for the contact form. CSP, themes, localization.",
-        features: ["Bilingual infra", "Theming", "Spam-protected contact form"],
-      },
-      {
-        category: "Documentation",
-        title: "Product technical specification",
-        description:
-          "Spec / decisions / runbook trio — three levels of detail, designed for humans and LLM assistants.",
-        features: ["Formal acceptance criteria", "Decision journal", "Operations runbook"],
-      },
-      {
-        category: "Infrastructure",
-        title: "Linear production on a VPS",
-        description:
-          "nginx + systemd + certbot + logrotate. No Kubernetes, no Docker, no vendor lock-in.",
-        features: ["Atomic deploys with rollback", "Uptime monitoring", "Full infra control"],
-      },
-    ];
+const cards = (await getCollection("solutions", ({ data }) => data.lang === locale))
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((entry) => ({
+    category: entry.data.category,
+    title: entry.data.title,
+    description: entry.data.description,
+    features: entry.data.features,
+    demoUrl: entry.data.demoUrl,
+  }));
 ---
 
 <section class="mx-auto max-w-6xl px-4 md:px-6 pt-16 md:pt-20 pb-8">
@@ -77,28 +40,19 @@ const cards = locale === "ru"
         </div>
         <h3 class="font-semibold text-lg mb-2" style="color: var(--color-text);">{c.title}</h3>
         <p class="text-sm leading-relaxed mb-4" style="color: var(--color-text-muted);">{c.description}</p>
-        <ul class="space-y-1.5 text-sm mt-auto" style="color: var(--color-text);">
+        <ul class="space-y-1.5 text-sm mb-4" style="color: var(--color-text);">
           {c.features.map((f) => <li>· {f}</li>)}
         </ul>
+        {c.demoUrl && (
+          <a
+            href={c.demoUrl}
+            class="mt-auto inline-flex items-center text-sm font-semibold hover:opacity-80"
+            style="color: var(--color-accent);"
+          >
+            {dict.projects.open} →
+          </a>
+        )}
       </article>
     ))}
-  </div>
-</section>
-
-<section class="mx-auto max-w-6xl px-4 md:px-6 py-16">
-  <div
-    class="rounded-xl p-8 md:p-12 text-center border"
-    style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
-  >
-    <h2 class="text-2xl md:text-3xl font-semibold tracking-tight mb-6" style="color: var(--color-text);">
-      {dict.solutions.ctaHeading}
-    </h2>
-    <a
-      href={localizedPath(locale, "/contact")}
-      class="inline-flex items-center px-6 py-3 rounded-lg text-base font-semibold transition-colors hover:opacity-90"
-      style="background-color: var(--color-accent); color: var(--color-accent-text);"
-    >
-      {dict.solutions.cta}
-    </a>
   </div>
 </section>

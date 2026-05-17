@@ -67,11 +67,12 @@ export interface Dictionary {
     timeline: {
       period: string;
       role: string;
-      summary: string;
+      company?: string;
+      summary?: string;
       achievements: string[];
     }[];
     educationTitle: string;
-    education: { period: string; line: string }[];
+    education: { period?: string; line: string }[];
     cta: string;
   };
   projects: {

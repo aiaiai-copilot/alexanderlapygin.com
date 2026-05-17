@@ -1,5 +1,5 @@
 ---
-import { localizedPath, t, type Locale } from "~/i18n";
+import { t, type Locale } from "~/i18n";
 
 interface Props {
   locale: Locale;
@@ -54,9 +54,16 @@ const dict = t(locale);
         <div class="font-semibold text-base mb-2" style="color: var(--color-text);">
           {row.role}
         </div>
-        <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
-          {row.summary}
-        </p>
+        {row.company && (
+          <div class="text-sm mb-3" style="color: var(--color-text-muted);">
+            {row.company}
+          </div>
+        )}
+        {row.summary && (
+          <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
+            {row.summary}
+          </p>
+        )}
         <ul class="space-y-1.5 text-sm" style="color: var(--color-text);">
           {row.achievements.map((a) => <li>· {a}</li>)}
         </ul>
@@ -72,21 +79,13 @@ const dict = t(locale);
   <ul class="space-y-3 text-sm">
     {dict.about.education.map((e) => (
       <li class="flex flex-col md:flex-row md:gap-4">
-        <span class="text-xs uppercase tracking-wider md:w-40" style="color: var(--color-text-muted);">
-          {e.period}
-        </span>
+        {e.period && (
+          <span class="text-xs uppercase tracking-wider md:w-40" style="color: var(--color-text-muted);">
+            {e.period}
+          </span>
+        )}
         <span style="color: var(--color-text);">{e.line}</span>
       </li>
     ))}
   </ul>
-</section>
-
-<section class="mx-auto max-w-3xl px-4 md:px-6 py-16 text-center">
-  <a
-    href={localizedPath(locale, "/contact")}
-    class="inline-flex items-center px-6 py-3 rounded-lg text-base font-semibold transition-colors hover:opacity-90"
-    style="background-color: var(--color-accent); color: var(--color-accent-text);"
-  >
-    {dict.about.cta}
-  </a>
 </section>
