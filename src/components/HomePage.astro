@@ -21,8 +21,14 @@ const dict = t(locale);
       <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
         {dict.home.heroTitle}
       </h1>
-      <p class="mt-4 text-lg md:text-xl max-w-2xl leading-relaxed" style="color: var(--color-text-muted);">
+      <p class="mt-2 text-xl md:text-2xl font-medium" style="color: var(--color-text);">
         {dict.home.heroSubtitle}
+      </p>
+      <p
+        class="mt-4 text-base md:text-lg max-w-2xl leading-relaxed whitespace-pre-line"
+        style="color: var(--color-text-muted);"
+      >
+        {dict.home.heroTagline}
       </p>
     </div>
   </div>
@@ -34,10 +40,10 @@ const dict = t(locale);
     style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
   >
     <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
-      {dict.home.philosophyTitle}
+      {dict.home.sdd.title}
     </div>
     <p class="text-lg leading-relaxed" style="color: var(--color-text);">
-      {dict.home.philosophyBody}
+      {dict.home.sdd.description}
     </p>
   </div>
 </section>

@@ -44,8 +44,11 @@ export interface Dictionary {
   home: {
     heroTitle: string;
     heroSubtitle: string;
-    philosophyTitle: string;
-    philosophyBody: string;
+    heroTagline: string;
+    sdd: {
+      title: string;
+      description: string;
+    };
     advantagesTitle: string;
     advantages: { title: string; body: string }[];
     featuredProjectsTitle: string;

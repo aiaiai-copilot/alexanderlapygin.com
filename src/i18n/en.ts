@@ -41,33 +41,32 @@ export const en: Dictionary = {
     copyright: (year) => `© ${year} Alexander Lapygin`,
   },
   home: {
-    heroTitle: "Independent web application developer",
-    heroSubtitle:
-      "I help businesses and startups build transparent, controllable products — from the first spec to long-term operation.",
-    philosophyTitle: "Approach",
-    philosophyBody:
-      "Content over decoration, static by default, minimum dependencies. I take on what I can carry from spec to release.",
+    heroTitle: "Alexander Lapygin",
+    heroSubtitle: "Web Application Development",
+    heroTagline:
+      "Sustainable code. Clear architecture.\nDocumentation that works — for people and tools",
+    sdd: {
+      title: "AI- and Spec-Driven Development",
+      description:
+        "At the core of every development stage lies a detailed specification — a source for AI and a guide for humans. This guarantees implementation accuracy, relevance, and completeness of documentation at all stages of the product lifecycle.",
+    },
     advantagesTitle: "What you get",
     advantages: [
       {
-        title: "Technical partner, not a contractor",
-        body:
-          "I help you frame the problem before writing code. I push back when I see weak spots.",
+        title: "Technical Partner",
+        body: "Full development cycle support: from requirements analysis and architecture design to writing code and server configuration.",
       },
       {
         title: "Transparency",
-        body:
-          "Spec audit upfront, fixed scope, clear plan. No mid-flight surprises.",
+        body: "Real-time progress: regular demos, clear reports, no 'black boxes'.",
       },
       {
-        title: "Project ownership stays with you",
-        body:
-          "Code, domains, secrets, analytics — all yours. The day I leave, you keep going.",
+        title: "No Vendor Lock-in",
+        body: "No dependency on a single developer. You receive fully transferable code and infrastructure that you own 100%.",
       },
       {
-        title: "AI-ready architecture",
-        body:
-          "Documentation that humans and LLM assistants both understand. Contracts over magic.",
+        title: "AI-ready Architecture",
+        body: "Documentation, architecture, and prompts are optimized for easy onboarding of new team members and rapid project development with AI tools.",
       },
     ],
     featuredProjectsTitle: "Client projects",
@@ -80,27 +79,23 @@ export const en: Dictionary = {
     title: "About",
     approachTitle: "Approach",
     approachBody: [
-      "I run projects end-to-end — from the first call and spec through to live operation. Short cycles and concrete commitments.",
-      "Tech preferences: simple, proven stacks. Astro, TypeScript, Node, PostgreSQL, minimum magic. I don't retrain clients on framework-of-the-month.",
+      "Full-stack developer, expert in spec-driven and AI-driven development. Build software products from scratch. Consult on AI- and Spec-Driven Development.",
+      "Modern AI tools let me speed up without losing quality. Any team or AI assistant can continue development from any point.",
       "If a problem isn't mine — I'll say so and recommend the right people.",
     ],
     expertiseTitle: "Technical expertise",
     expertise: [
       {
         group: "Frontend",
-        items: ["Astro", "TypeScript", "React (when justified)", "CSS architecture"],
+        items: ["TypeScript", "JavaScript", "React", "etc"],
       },
       {
         group: "Backend",
-        items: ["Node.js", "PostgreSQL", "Redis", "REST/GraphQL APIs"],
+        items: ["Node.js", "TypeScript", "Java", "PostgreSQL", "Supabase", "Redis", "etc"],
       },
       {
         group: "Architecture",
-        items: [
-          "System decomposition",
-          "Stack selection per problem",
-          "SLOs, reliability, security",
-        ],
+        items: ["Clean architecture", "Feature-Sliced Design", "Serverless", "etc"],
       },
       {
         group: "AI tooling",
