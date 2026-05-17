@@ -1,7 +1,7 @@
 # HANDOFF
 
 **Date:** 2026-05-17
-**Branch:** `main` (впереди `origin/main` на 8 коммитов — Phases 1-4 контент-трека + Phase 3 fix `367882a` + 3 handoff'а; рабочее дерево чистое) — последний содержательный коммит `7e93350` feat(branding,deploy): add EN og:image and nginx alias for legacy portfolio (2026-05-17), не запушен.
+**Branch:** `main` (впереди `origin/main` на 10 коммитов — Phases 1-4 контент-трека + Phase 3 fix `367882a` + content-realign `744b059` + 4 handoff'а; рабочее дерево чистое до этого handoff-коммита) — последний содержательный коммит `744b059` feat(content): align about/solutions/blog/projects with prod source-of-truth (2026-05-17), не запушен.
 
 Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, **обновлён 2026-05-17** до релиза `20260516T221717Z` (CSP-фикс: все скрипты внешние, theme toggle и mobile menu работают под строгим `script-src 'self'`; всё, что было в предыдущем релизе `20260516T212815Z`, тоже здесь — sitemap, RSS per-locale, og:image, favicon-стек, twitter:card, очищенная карточка minimal-backend). Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
@@ -23,13 +23,14 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
 
 ### Что осталось недоделанным
 
-1. **Контент-трек pre-cutover — ВСЕ 4 ФАЗЫ ЗАКРЫТЫ ЛОКАЛЬНО** (`c2da2a1` + `9777ca9` + `25ef234` + fix `367882a` + `7e93350`). Spec: `docs/superpowers/specs/2026-05-17-content-seed-from-prod-design.md`. План: `docs/superpowers/plans/2026-05-17-content-seed-from-prod.md`.
+1. **Контент-трек pre-cutover — ВСЕ 4 ФАЗЫ ЗАКРЫТЫ ЛОКАЛЬНО + content-realign** (`c2da2a1` + `9777ca9` + `25ef234` + fix `367882a` + `7e93350` + `744b059`). Spec: `docs/superpowers/specs/2026-05-17-content-seed-from-prod-design.md`. План: `docs/superpowers/plans/2026-05-17-content-seed-from-prod.md`.
    - Phase 1 (`c2da2a1`): seed posts/projects из прод-источника.
    - Phase 2 (`9777ca9`): i18n rewrite + HomePage rename/tagline.
    - Phase 3 (`25ef234` + fix `367882a`): HomePage rewire на `getCollection` + kind-aware project links.
    - Phase 4 (`7e93350`): og-en.svg + locale-conditional og:image/twitter:image в BaseLayout + nginx `/portfolio/` alias.
-   - **Подход исполнения (подтверждён в Phases 1-4):** `superpowers:subagent-driven-development` (по одному implementer-subagent'у на task + spec review + quality review + final integration review на цельный phase-коммит).
-   - Открытые элементы спеки §7 (требуют авторской работы, не блокируют коммиты фаз, но блокируют cutover): реальный `liveUrl` для `voice-to-spec` (сейчас `-tbd` placeholder в `c2da2a1`); реальный body для `llm-spec-tools` (placeholder body «## Цель / ## Состояние» добавлен в `c2da2a1`); EN/RU-переводы single-locale showcase'ов (oauth EN-only, telegram EN-only, sbp RU-only); body для EN-solutions `spec-trio` и `static-site-with-ssr` (skeleton'ы созданы в `c2da2a1`); подготовка `/var/www/alexanderlapygin.com/legacy/` extraction на VPS (на cutover'е); ручной редизайн `og-en.svg` если автор хочет более полированный визуал (сейчас — структурная копия `og.svg` с латинской типографикой).
+   - **Content-realign (`744b059`, эта сессия):** ручной разворот контента под прод как single source of truth — заменены/удалены seed-скелетоны, see "Session 2026-05-17" ниже. Расхождение со spec'ом сознательное, фиксируется в коде.
+   - **Подход исполнения (Phases 1-4):** `superpowers:subagent-driven-development`. Content-realign в этой сессии — ad-hoc, без плана/спеки, по интерактивной правке UI с просмотром в dev-сервере.
+   - Открытые элементы спеки §7 (требуют авторской работы, не блокируют коммиты, блокируют cutover): реальный `liveUrl` для `voice-to-spec` (сейчас `-tbd` placeholder в `c2da2a1`); реальный body для `llm-spec-tools` (placeholder body «## Цель / ## Состояние» в `c2da2a1`); подготовка `/var/www/alexanderlapygin.com/legacy/` extraction на VPS (на cutover'е); ручной редизайн `og-en.svg` если хочется более полированный визуал. **Закрыто/устарело:** single-locale showcase'ы и EN-solutions skeleton'ы `spec-trio`/`static-site-with-ssr` — удалены в `744b059`, заменены на прод-витрину (oauth/telegram/sbp/saas).
 
 2. **Redeploy stage с актуальным build'ом** — отдельная сессия. Текущий stage-релиз `20260516T221717Z` от 2026-05-17 включает только технический трек + CSP-фикс; **контент-трек Phases 1-4 ещё НЕ задеплоен на stage**. Перед redeploy: `npm run build` локально → upload `dist/` → `/var/www/alexanderlapygin.com/stage-releases/<новый-TS>/` → atomic switch `stage-html` симлинка. Smoke по спеке §5 + добавить `/portfolio/living-tags/living-tags-prototype/` (рекомендация из final integration review Phase 4 — spec'овый smoke-loop сейчас покрывает только Astro-URL'ы).
 
@@ -53,38 +54,59 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - `package.json` script для `node src/scripts/build-branding-assets.mjs` (сейчас запускается вручную — discoverability ноль).
    - CI guard на «edited og-en.svg but forgot to commit og-en.png» (из Phase 4 final review).
 
-## Session 2026-05-17 (восьмая сессия дня)
+## Session 2026-05-17 (девятая сессия дня — content-realign)
 
 ### Что сделано
 
-- Phase 4 контент-трека (Tasks 11-14 плана) выполнена через `superpowers:subagent-driven-development`. Flow per task: 1 implementer-subagent (sonnet) → spec compliance review (sonnet) → code-quality review (sonnet) → mark complete. После Task 14 — финальный integration review всей Phase 4 (opus) READY_TO_MERGE + Cutover READY.
-- Контентный трек теперь **полностью закрыт локально** (4 атомарных phase-коммита: `c2da2a1`, `9777ca9`, `25ef234`+fix `367882a`, `7e93350`).
-- Phase 4 — единый коммит на 5 файлов:
-  - `7e93350` feat(branding,deploy): add EN og:image and nginx alias for legacy portfolio
-- Изменения по файлам:
-  - `src/assets/branding/og-en.svg` (NEW, 13 строк) — структурная копия `og.svg`, только 3 текстовые замены: `АЛ`→`AL`, `Александр Лапыгин`→`Alexander Lapygin`, `Независимый разработчик`→`Independent developer`. ViewBox/координаты/шрифты/цвета bit-for-bit идентичны.
-  - `public/og-en.png` (NEW, 1200×630 RGBA PNG, 25579 байт) — сгенерирован скриптом.
-  - `src/scripts/build-branding-assets.mjs` — добавлен блок `// 1b. og-en.png` сразу после `// 1. og.png` (тот же `rasterize` helper); финальный лог обновлён с «4 assets» на «5 assets».
-  - `src/layouts/BaseLayout.astro` — в frontmatter добавлен `const ogImagePath = locale === "en" ? "/og-en.png" : "/og.png"` (strict `===`, неизвестные локали падают на RU); хардкоженный `/og.png` заменён на `ogImagePath` в двух местах: `og:image` (line 69) **и** `twitter:image` (line 74). `twitter:image` обновлён сверх spec'а для consistency — обоснование в integration review: spec явно запрещал менять только `twitter:card` (тип карточки, без path), а `twitter:image` концептуально всегда дублировал `og:image`. Bonus: `og:image:alt` уже использует `dict.meta.siteAuthor` (RU «Александр Лапыгин» / EN «Alexander Lapygin»), так что alt автоматически стал locale-aware.
-  - `deploy/nginx/alexanderlapygin.com.conf` — вставлен `location ^~ /portfolio/` блок (25 строк, между `/showcase/` close на line 115 и immutable-cache comment на line 117). Структурная копия `/showcase/` минус `backend/` exclusion (portfolio не имеет server-side компонентов). `root /var/www/alexanderlapygin.com/legacy;` + same security-headers include + `try_files $uri $uri/index.html =404;`. Live `nginx -t` отложен до cutover'а (snippet path существует только на VPS).
-- Build/check: `npm run check` 0/0 (64 pre-existing Zod-deprecation hint'а), `npm run build` 26 страниц success. Спот-чек dist: RU pages (`/`, `/about/`, `/projects/voice-to-spec/`, `/404/`) → `og.png`; EN pages (`/en/`, `/en/about/`, `/en/blog/sdd-intro/`, `/en/404/`) → `og-en.png`. Оба meta-тега (og:image + twitter:image) согласованы на каждой странице.
-- Final integration review (opus): READY_TO_MERGE + Cutover READY. Полезная рекомендация на cutover — добавить `https://alexanderlapygin.com/portfolio/living-tags/living-tags-prototype/` в smoke-loop (sect §5 покрывает только Astro-URL'ы, не portfolio alias).
+Интерактивный разворот контента под прод как single source of truth. Источник правды — прод-React-SPA: основной JS `https://alexanderlapygin.com/assets/index-x1YQXxU-.js` + sub-chunks (`blogPosts-BRZs9O0j.js`, `showcaseProjects-SOi9Qs7t.js`). Расхождение со spec'ом 2026-05-17-content-seed-from-prod сознательное — пользователь принимал решения в живом просмотре через `npm run dev`. Единый коммит:
+
+- `744b059` feat(content): align about/solutions/blog/projects with prod source-of-truth
+
+Изменения по областям:
+
+- **About (`src/i18n/{ru,en}.ts` + `src/components/AboutPage.astro` + `src/i18n/types.ts`):**
+  - Опечатка: «не ваша» → «не моя» (RU).
+  - Группа экспертизы **Разработка** / **Development** восстановлена из прода (с bullet-списком «инструменты ИИ: Claude Code / Antigravity / Lovable / и др.»); заменила две stage-группы (AI-инструменты + Документация).
+  - Timeline: добавлены две прод-записи (Самозанятый 2025—наст., VDI/Росбанк/Т-Банк 2000—2025), потом две stage-записи (2023—наст., 2018—2023) удалены — остались только прод. Тип timeline расширен опциональным `company`, `summary` сделан опциональным; renderer показывает оба поля условно.
+  - Education: интервал убран, заменено на «МИФИ — прикладная математика» / «MEPhI — Applied Mathematics»; тип `period` сделан опциональным, renderer условный.
+  - CTA-блок «Обсудить проект» удалён.
+
+- **Solutions (`src/components/SolutionsPage.astro` + `src/content/solutions/{ru,en}/*`):**
+  - SolutionsPage перепаян с хардкоженного массива на `getCollection("solutions")` с фильтром по локали и сортировкой по `order`. Удалён неиспользуемый импорт `localizedPath`.
+  - Содержимое полностью заменено на 4 прод-витрины: `oauth-simplest` (10), `telegram-gateway` (20), `sbp-payments` (30), `saas-dashboard` (40) — обе локали. `demoUrl` сверены с прод-роутером showcase-чанка: `/showcase/oauth/simplest/`, `/showcase/telegram-bot/messaging/`, `/showcase/payments/sbp/`, у saas-dashboard URL убран (на проде `isLive:false`).
+  - Удалены skeleton'ы `spec-trio` и `static-site-with-ssr` в обеих локалях.
+  - Добавлен «Open / Открыть» link в карточку (рендерится только при наличии `demoUrl`).
+  - CTA-блок «Готовы начать проект?» удалён.
+
+- **Blog (`src/content/posts/{ru,en}/*`):**
+  - Оставлены три прод-SDD-поста (`sdd-intro`, `sdd-backstory`, `sdd-first-experience`) — RU+EN. Их body уже идентичны проду (Phase 1).
+  - Удалены `zachem-spec-pered-kodom` (RU+EN) и `staticheskiy-sait-i-odna-tochka-ssr` (RU).
+
+- **Projects (`src/content/projects-{personal,saas}/`):**
+  - `living-tags-prototype.md` перенесён из `projects-personal/{ru,en}` в `projects-saas/{ru,en}` (git mv, контент без изменений).
+  - `sbp-payments.md` удалён из `projects-personal/ru` (переведён в Solutions).
+  - `scoped-tasks.md` удалён из `projects-saas/ru`.
+
+- **Home (`src/components/HomePage.astro`):** удалён нижний CTA «Обсудить проект».
+
+Build/check: `npm run check` 0/0 (64 pre-existing Zod-deprecation hint'а — unchanged). `npm run build` не запускался в этой сессии (HMR-only flow).
 
 ### Коммиты этой сессии
 
-- `7e93350` feat(branding,deploy): add EN og:image and nginx alias for legacy portfolio
+- `744b059` feat(content): align about/solutions/blog/projects with prod source-of-truth
 - (handoff-коммит этой сессии)
 
 ### Локальное состояние (не в git)
 
-- Никаких фоновых процессов: subagent'ы, поднимавшие `npm run dev` для smoke-проверок, убирали их сами.
-- На VPS — без изменений (нет деплоев в этой сессии). Stage retention: активный релиз `20260516T221717Z`. Контент-трек Phases 1-4 **не задеплоен на stage** (ждёт redeploy в следующей сессии).
+- **Фоновый процесс:** `npm run dev` поднят на `http://localhost:4321/` (Bash background ID `bzsoublsn`). Если следующая сессия начинает с разработки UI — можно переподнять; если с деплоя/cutover'а — убить.
+- **Временные дампы прод-источников** в `/tmp/`: `prod-app.js` (397 KB, основной React-bundle), `blogPosts.js` (17.9 KB), `showcase.js` (1.8 KB). Использовались как источник истины для extraction'а контента в `744b059`. Если нужно повторить расследование — пути воспроизводимы через `curl https://alexanderlapygin.com/assets/index-x1YQXxU-.js` и т.д.
+- На VPS — без изменений (нет деплоев в этой сессии). Stage retention: активный релиз `20260516T221717Z` от 2026-05-17. Контент-трек Phases 1-4 **и** content-realign (`744b059`) **не задеплоены на stage** (ждут redeploy в следующей сессии).
 
 ### Осталось недоделанным
 
 Следующая сессия:
 
-1. **Redeploy stage** с актуальным build'ом (содержит все 4 phase-коммита). Mechanism — как для текущего `stage-releases/20260516T221717Z`: `npm run build` локально → upload `dist/` → `/var/www/alexanderlapygin.com/stage-releases/<новый-TS>/` → atomic switch `stage-html` симлинка. Smoke по спеке §5 + добавить `/portfolio/living-tags/living-tags-prototype/`. На этом stage будет готов под cutover.
+1. **Redeploy stage** с актуальным build'ом (содержит Phases 1-4 + `744b059`). Mechanism — как для текущего `stage-releases/20260516T221717Z`: `npm run build` локально → upload `dist/` → `/var/www/alexanderlapygin.com/stage-releases/<новый-TS>/` → atomic switch `stage-html` симлинка. Smoke по спеке §5 + `/portfolio/living-tags/living-tags-prototype/`. **Новое в smoke:** проверить `/solutions/`, `/en/solutions/` (4 карточки + рабочие «Open»-ссылки на 3 sub-SPA), `/about/`, `/en/about/` (Разработка-группа + 2 прод-записи timeline + МИФИ); проверить, что `/blog/`, `/en/blog/` показывают ровно 3 SDD-поста; проверить, что `/projects/living-tags-prototype/` теперь под `projects-saas` (как kind), а `/showcase/payments/sbp/` ведёт корректно.
 2. После redeploy stage + smoke — cutover stage→prod (см. общий блок «Что осталось недоделанным» п.3 в начале файла).
 
-Дальше по общему блоку: открытые элементы спеки §7 (авторская работа — реальный `liveUrl` для voice-to-spec, body для llm-spec-tools, single-locale переводы, EN-solutions bodies), defense-in-depth, вне-MVP cleanup.
+Дальше по общему блоку: открытые элементы спеки §7 (реальный `liveUrl` для voice-to-spec, body для llm-spec-tools, подготовка legacy/ extraction, опциональный редизайн og-en.svg), defense-in-depth, вне-MVP cleanup.
