@@ -1,7 +1,7 @@
 # HANDOFF
 
 **Date:** 2026-05-17
-**Branch:** `main` (синхронизирована с `origin/main`, рабочее дерево чистое) — последний содержательный коммит `cece042` fix(csp): emit theme/header scripts as external files (2026-05-17), запушен.
+**Branch:** `main` (**впереди `origin/main` на 1 коммит** — `e74594f` handoff не запушен; рабочее дерево чистое) — последний содержательный коммит `cece042` fix(csp): emit theme/header scripts as external files (2026-05-17), запушен.
 
 Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, **обновлён 2026-05-17** до релиза `20260516T221717Z` (CSP-фикс: все скрипты внешние, theme toggle и mobile menu работают под строгим `script-src 'self'`; всё, что было в предыдущем релизе `20260516T212815Z`, тоже здесь — sitemap, RSS per-locale, og:image, favicon-стек, twitter:card, очищенная карточка minimal-backend). Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
@@ -23,11 +23,10 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
 
 ### Что осталось недоделанным
 
-1. **Контент-трек pre-cutover** (отдельный, многосессионный, требует участия автора как контент-мейкера — несопоставим по объёму с техническим):
-   - `HomePage.astro:79-108` и `:124-144` — захардкоженный полуфабрикат: `[1,2,3].map(...)` для «Featured Projects» и «Latest Posts» с inline-RU/EN-стрингами «Пример проекта 1/2/3» / «Sample project 1/2/3» / «Заголовок публикации 1/2/3» с явным комментарием «Сюда подтянутся реальные карточки из коллекции» / «Реальные данные подтянутся из контент-коллекции». **Прямой блокер cutover'а.** Решение: либо пополнить коллекции и подключить `getCollection` (как в `ProjectsCatalog`/`BlogCatalog`), либо временно скрыть секции, либо другая стратегия.
-   - EN-локализация контент-коллекций: в `src/content/` всё почти только RU — 2 RU + 1 EN пост, 1 client-project (RU), 1 personal-project (RU), 1 saas-project (RU), 2 solutions (RU). EN-каталоги `/en/projects`, `/en/blog`, `/en/solutions` рендерятся почти пустыми.
-   - **Cyrillic-only `public/og.png`** — содержит «АЛ / Александр Лапыгин / Независимый разработчик»; для EN-локалей при социальной шарилке выглядит странно. Решение из спеки (один статический OG для обеих локалей) принято осознанно — пересматривать когда EN станет primary surface. Хук уже есть: `locale` в scope в `BaseLayout.astro`; добавить `og-en.svg` + ветвление в meta-теге.
-   - Решение по `/portfolio/*` и `/showcase/*` (старый React-prod): URL'ы `/portfolio/living-tags/{living-tags-poc,living-tags-prototype}/`, `/showcase/{payments/sbp,oauth/simplest,telegram-bot/messaging}/` — это демки/PoC. Их нет в Astro. Варианты: (а) сохранить URL'ы через nginx alias на html-файлы (сами демки переехать в `public/legacy/` или хранить отдельно); (б) 301-редиректы на карточки в новом каталоге; (в) 410 Gone; (г) использовать их как `liveUrl` в карточках проектов.
+1. **Контент-трек pre-cutover** (отдельный, многосессионный — design согласован в сессии 2026-05-17 (третья), детальная спека на следующую сессию; см. блок `Session 2026-05-17 (третья)` ниже):
+   - Подходы: **C (full mirror)** — прод-контент как канон + per-item курация stage-элементов; **execution phased** — 4 фазы (1: seed collections, 2: i18n+About в прод-голосе, 3: HomePage rewire через `getCollection`, 4: og-en + nginx alias). Прод-исходник: `~/Projects/mind-section-dev-portfolio-by-lovable` (`src/data/blogPosts.ts` — 3 RU + 3 EN SDD-серии; `src/data/showcaseProjects.ts` — 4 showcase; `src/i18n/locales/{ru,en}.json` 391 строка). URL-стратегия по `/portfolio/*` `/showcase/*`: (а) keep alive через nginx alias на extracted `backups/alexanderlapygin.com-pre-cutover-20260515T204033Z.tar.gz`.
+   - Прямой cutover-блокер — `HomePage.astro:79-108` и `:124-144` (`[1,2,3].map(...)`-плейсхолдеры) закрывается фазой 3.
+   - Открытые элементы (требуют авторской работы, не блокируют коммит фазы 1, но блокируют cutover): реальный `liveUrl` для `voice-to-spec`; body для `llm-spec-tools`; EN-переводы single-locale showcase'ов (sbp/oauth/telegram); body для EN-solutions; подготовка `/var/www/alexanderlapygin.com/legacy/` из backup-тарбола на VPS.
 
 2. **Cutover stage→prod** (после контент-трека — единственный оставшийся блокер; CSP-фикс закрыт в `cece042`):
    - Pre-check повтор: блокеры из контент-трека закрыты, остальные ranking'ом OK.
@@ -48,12 +47,53 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - Cleanup `.wrangler/` (в `.gitignore` отсутствует — артефакт CF Pages лежит в репо).
    - `package.json` script для `node src/scripts/build-branding-assets.mjs` (сейчас запускается вручную — discoverability ноль).
 
-## Session 2026-05-17 (вторая сессия дня)
+## Session 2026-05-17 (третья сессия дня)
 
 ### Что сделано
 
-- Подтверждён push в `origin/main`: коммиты прошлой сессии (`cece042` CSP-фикс + `7c3ccf1` handoff) теперь на remote, рабочее дерево синхронизировано.
-- Актуализирован `HANDOFF.md` под новое состояние (шапка + чистка устаревшего session-блока, чьё содержимое теперь восстановимо через `git show 7c3ccf1:HANDOFF.md`).
+- Полный brainstorming контент-трека через `superpowers:brainstorming` skill. Согласованы: scope (**C: full mirror прода**), execution-подход (**фазированный, 4 фазы**), курация stage↔prod, design по 7 секциям. Спеку пользователь явно отложил на следующую сессию.
+- Фоновый `npm run dev` (PID 9209, :4321) от прошлой сессии остановлен (`kill 9209`); порт свободен. `csp-preview` (:4322) уже был мёртв.
+
+### Approved design summary (для написания спеки в следующей сессии)
+
+**Источник прод-контента:** `~/Projects/mind-section-dev-portfolio-by-lovable` (отдельный репо, имеет git-историю). Ключевые файлы:
+- `src/data/blogPosts.ts` — 3 EN posts (sdd-intro/backstory/first-experience, строки 13-98) + 3 RU posts (строки 197-283) + ~12 закомментированных черновиков.
+- `src/data/showcaseProjects.ts` — 4 проекта: oauth-simplest (live, EN-only desc), telegram-bot-messaging (live, EN), sbp-payments (live, RU), saas-dashboard (vaporware placeholder — **drop**).
+- `src/i18n/locales/{ru,en}.json` — 391 строка/локаль (navigation, home hero/sdd/benefits/cta, about title/description/technicalExpertise/skills.{frontend,backend,architecture}).
+- Portfolio living-tags poc + prototype (URL'ы: `/portfolio/living-tags/{poc,prototype}/`).
+
+**Курация stage-контента (что keep/drop):**
+- Stage posts: `posts/{ru,en}/zachem-spec-pered-kodom` — **keep** (не дубль SDD-серии, другой угол). `posts/ru/staticheskiy-sait-i-odna-tochka-ssr` — **keep** (тема не пересекается).
+- Stage projects: `voice-to-spec` (client/ru) — **keep**, но открытый `liveUrl` (сейчас `example.com`); `llm-spec-tools` (personal/ru) — **keep**, body пустой → плейсхолдер в фазе 1, открытое наполнение; `scoped-tasks` (saas/ru) — **keep**, `comingSoon: true` ок без body.
+- Stage solutions (`spec-trio`, `static-site-with-ssr`) — **keep**, раздел Solutions остаётся как новая сущность нового сайта (прод-аналога нет).
+- About: extra-группы expertise (AI-инструменты, Документация), `timeline`, `education` — **keep как stage поверх прод-канона**.
+
+**Маппинг прод-showcase/portfolio → коллекция `projects-personal`:**
+- `oauth-simplest` (EN): `projects-personal/en/oauth-simplest.md`, `liveUrl=https://alexanderlapygin.com/showcase/oauth/simplest/`.
+- `telegram-bot-messaging` (EN): аналогично, `liveUrl=.../showcase/telegram-bot/messaging/`.
+- `sbp-payments` (RU): `projects-personal/ru/sbp-payments.md`, `liveUrl=.../showcase/payments/sbp/`.
+- `living-tags-poc/prototype` (RU+EN, обе локали если на проде обе): `liveUrl=.../portfolio/living-tags/.../`.
+- **Schema gotcha:** `projects-personal.liveUrl` требует `z.string().url()` — нужны абсолютные URL'ы, не относительные. После cutover'а nginx alias на `/var/www/alexanderlapygin.com/legacy/` обслуживает эти URL'ы.
+
+**4 фазы (каждая — отдельный PR/коммит, контракты в спеке):**
+
+1. **Seed collections** — только `.md` файлы, никаких code/schema-изменений. Posts (6 файлов: `posts/{ru,en}/sdd-{intro,backstory,first-experience}.md`) + Projects (5 файлов в `projects-personal`) + fix stage stubs (`voice-to-spec` URL-заглушка с TBD, `llm-spec-tools` плейсхолдер-body) + EN solutions skeletons (frontmatter только). Acceptance: `npm run check` 0/0, `npm run build` ok, `/projects` `/en/projects` `/blog` `/en/blog` `/solutions` `/en/solutions` рендерятся с новыми карточками.
+
+2. **i18n + About (прод-голос, B)** — `src/i18n/{ru,en}.ts`: `home.heroTitle`→имя, `home.heroSubtitle`→роль, новый `home.heroTagline`, переименовать `philosophy*` → `home.sdd.{title,description}`, переписать `home.advantages[]` на прод-формулировки, `about.description`→прод-биография, добавить `about.technicalExpertise.{title,subtitle}`, переписать `about.skills.{frontend,backend,architecture}` на прод-тексты. **Keep stage-only:** extra-группы expertise (AI-инструменты, Документация), `timeline`, `education`. `HomePage.astro`: рефактор обращений к dict (`philosophyTitle/Body` → `sdd.title/description`).
+
+3. **HomePage rewire** — `src/components/HomePage.astro`: добавить `getCollection` imports + `pageSlug` helper + helper `projectHref(p)`. Featured Projects = union client+personal+saas, filter `featured===true && lang===locale`, sort `pubDate desc`, slice(0,3). Fallback: добор по дате если featured<3. Latest Posts = `posts` filter `!draft && lang===locale`, sort+slice(0,3). 0 items → секция скрывается целиком. Удаляем «5 мин»-микро-копию (нет поля в схеме). Acceptance: `dist/index.html` и `dist/en/index.html` содержат 0 совпадений с «Пример проекта», «Sample project», «Заголовок публикации», «Sample post title».
+
+4. **og-en + nginx alias prep** — `public/og-en.svg` (EN-аналог `og.svg`: «АЛ»→«AL» и т.д.) + extend `src/scripts/build-branding-assets.mjs` для генерации `og-en.png`. `BaseLayout.astro` ветвление `ogImage = locale === 'en' ? '/og-en.png' : '/og.png'`. `deploy/nginx/sites-available/alexanderlapygin.com.conf`: `location ^~ /portfolio/` + `location ^~ /showcase/` через `alias /var/www/alexanderlapygin.com/legacy/.../;`. **Не активирует ничего на проде** — применяется атомарно с cutover'ом.
+
+**Открытые элементы (Section 7 design'а), требуют авторской работы перед cutover'ом:**
+- (1) Реальный `liveUrl` для `voice-to-spec` (заменить заглушку).
+- (2) Body для `llm-spec-tools.md` (1-2 абзаца).
+- (3) EN-переводы single-locale showcase descriptions: RU для oauth + telegram, EN для sbp (по факту прода living-tags — уточнить, есть ли обе локали в прод-данных).
+- (4) Body для `solutions/en/spec-trio.md` и `solutions/en/static-site-with-ssr.md`.
+- (5) VPS: подготовка `/var/www/alexanderlapygin.com/legacy/{portfolio,showcase}/` extraction из `backups/alexanderlapygin.com-pre-cutover-20260515T204033Z.tar.gz` — на cutover'е, не сейчас.
+- (6) Не блокирует cutover, но желательно: `og-en.png`/`og-en.svg`. Без него EN-локаль шарится с кириллической картинкой.
+
+**После завершения brainstorming'а:** в новой сессии — пишется спека `docs/superpowers/specs/2026-05-17-content-seed-from-prod-design.md` по этому summary, self-review, user-review, далее `superpowers:writing-plans` для имплементационного плана.
 
 ### Коммиты этой сессии
 
@@ -61,11 +101,12 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
 
 ### Локальное состояние (не в git)
 
-- На VPS retention stage-цепочки прежняя: 3 релиза, последний активный — `20260516T221717Z`. Не менялось.
-- На ноутбуке могут всё ещё работать фоновые процессы от прошлой сессии (не верифицировано в этой):
-  - `npm run dev` на :4321 (PID 9209, лог `/tmp/astro-dev.log`).
-  - `node scripts/csp-preview.mjs 4322` на :4322 (background-task ID `bhq8v4q4b`).
+- `npm run dev` (PID 9209) убит в этой сессии, :4321 свободен.
+- `csp-preview` (:4322) был мёртв до начала сессии.
+- `/tmp/astro-dev.log` остался от прошлой сессии (последняя запись `08:40:30 [200] /`). Не очищен.
+- На VPS retention stage-цепочки: 3 релиза, активный — `20260516T221717Z`. Не менялось.
 
 ### Осталось недоделанным
 
-Без изменений относительно общего блока «Что осталось недоделанным» выше (контент-трек, cutover, defense-in-depth, вне-MVP cleanup).
+- **Спека контент-трека** — написать `docs/superpowers/specs/2026-05-17-content-seed-from-prod-design.md` по summary выше. Это первое действие следующей сессии.
+- Дальше по общему блоку «Что осталось недоделанным» выше: имплементация фаз 1-4, разрешение открытых элементов авторской работой, cutover, defense-in-depth, вне-MVP cleanup.
