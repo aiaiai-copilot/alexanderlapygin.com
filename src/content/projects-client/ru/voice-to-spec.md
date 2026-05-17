@@ -3,7 +3,7 @@ title: "Voice-to-spec пайплайн"
 description: "Голосовые заметки клиента превращаются в структурированную спецификацию через LLM-ассистента."
 pubDate: 2026-03-15
 stack: ["Astro", "TypeScript", "Node.js", "Anthropic API"]
-liveUrl: "https://example.com/voice-to-spec"
+liveUrl: "https://example.com/voice-to-spec-tbd"
 featured: true
 phase: "Production"
 type: "Internal tool"
