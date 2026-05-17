@@ -34,6 +34,7 @@ const xDefault = new URL(
   localizedPath("ru", path.replace(/^\/en(\/|$)/, "/")),
   Astro.site ?? "https://alexanderlapygin.com",
 ).toString();
+const ogImagePath = locale === "en" ? "/og-en.png" : "/og.png";
 ---
 
 <!doctype html>
@@ -65,12 +66,12 @@ const xDefault = new URL(
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content={ogLocale(locale)} />
     <meta property="og:locale:alternate" content={ogLocale(altLocale)} />
-    <meta property="og:image" content={new URL("/og.png", Astro.site ?? "https://alexanderlapygin.com").toString()} />
+    <meta property="og:image" content={new URL(ogImagePath, Astro.site ?? "https://alexanderlapygin.com").toString()} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content={dict.meta.siteAuthor} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content={new URL("/og.png", Astro.site ?? "https://alexanderlapygin.com").toString()} />
+    <meta name="twitter:image" content={new URL(ogImagePath, Astro.site ?? "https://alexanderlapygin.com").toString()} />
 
     <script is:inline src="/theme-init.js"></script>
   </head>

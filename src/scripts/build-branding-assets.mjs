@@ -35,10 +35,15 @@ function pngToIco(pngBuffer, sizePx) {
   return Buffer.concat([header, entry, pngBuffer]);
 }
 
-// 1. og.png — 1200×630
+// 1. og.png — 1200×630 (RU default)
 console.log('Generating og.png (1200×630)...');
 const ogPng = rasterize(join(SRC, 'og.svg'), 1200);
 writeFileSync(join(OUT, 'og.png'), ogPng);
+
+// 1b. og-en.png — 1200×630 (EN)
+console.log('Generating og-en.png (1200×630)...');
+const ogEnPng = rasterize(join(SRC, 'og-en.svg'), 1200);
+writeFileSync(join(OUT, 'og-en.png'), ogEnPng);
 
 // 2. favicon.svg — copy source as-is
 console.log('Copying favicon.svg...');
@@ -55,4 +60,4 @@ console.log('Generating apple-touch-icon.png (180×180)...');
 const appleTouch = rasterize(join(SRC, 'favicon.svg'), 180);
 writeFileSync(join(OUT, 'apple-touch-icon.png'), appleTouch);
 
-console.log('Done. 4 assets written to public/.');
+console.log('Done. 5 assets written to public/.');
