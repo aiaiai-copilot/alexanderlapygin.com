@@ -19,11 +19,11 @@ const saasProjects = (await getCollection("projects-saas", (e) => e.data.lang ==
   .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 ---
 
-<section class="mx-auto max-w-6xl px-4 md:px-6 pt-16 md:pt-20 pb-8">
+<section class="mx-auto max-w-3xl px-4 md:px-6 pt-16 md:pt-20 pb-8 text-center">
   <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
     {dict.projects.title}
   </h1>
-  <p class="mt-4 text-lg max-w-2xl" style="color: var(--color-text-muted);">
+  <p class="mt-4 text-lg" style="color: var(--color-text-muted);">
     {dict.projects.subtitle}
   </p>
 </section>

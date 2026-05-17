@@ -53,7 +53,7 @@ export const en: Dictionary = {
     advantagesTitle: "What you get",
     advantages: [
       {
-        title: "Technical Partner",
+        title: "Technical Partnership",
         body: "Full development cycle support: from requirements analysis and architecture design to writing code and server configuration.",
       },
       {
@@ -216,6 +216,7 @@ export const en: Dictionary = {
     ],
     asideEmailHeading: "Direct email",
     asideTelegramHeading: "Direct Telegram",
+    asideGithubHeading: "GitHub",
     asideStepsHeading: "What happens next",
     asideSteps: [
       "Initial discussion within 24 hours.",

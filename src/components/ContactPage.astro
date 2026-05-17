@@ -18,11 +18,11 @@ const detailsMax = 2000;
 const detailsMin = 30;
 ---
 
-<section class="mx-auto max-w-6xl px-4 md:px-6 pt-16 md:pt-20 pb-8">
+<section class="mx-auto max-w-3xl px-4 md:px-6 pt-16 md:pt-20 pb-8 text-center">
   <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
     {dict.contact.title}
   </h1>
-  <p class="mt-4 text-lg max-w-2xl" style="color: var(--color-text-muted);">
+  <p class="mt-4 text-lg" style="color: var(--color-text-muted);">
     {dict.contact.subtitle}
   </p>
 </section>
@@ -287,6 +287,21 @@ const detailsMin = 30;
           </a>
         </div>
       )}
+
+      <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
+        <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
+          {dict.contact.asideGithubHeading}
+        </div>
+        <a
+          href="https://github.com/aiaiai-copilot"
+          rel="me noopener"
+          target="_blank"
+          class="text-base font-medium hover:underline break-all"
+          style="color: var(--color-accent);"
+        >
+          github.com/aiaiai-copilot
+        </a>
+      </div>
 
       <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
         <h3 class="text-sm font-semibold mb-3" style="color: var(--color-text);">

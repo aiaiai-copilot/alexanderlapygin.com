@@ -57,7 +57,7 @@ export const ru: Dictionary = {
     advantagesTitle: "Что вы получаете",
     advantages: [
       {
-        title: "Технический партнер",
+        title: "Техническое партнёрство",
         body: "Поддержка полного цикла разработки: от анализа требований и дизайна архитектуры до написания кода и настройки серверов.",
       },
       {
@@ -221,6 +221,7 @@ export const ru: Dictionary = {
     ],
     asideEmailHeading: "Прямой email",
     asideTelegramHeading: "Прямой Telegram",
+    asideGithubHeading: "GitHub",
     asideStepsHeading: "Что будет дальше",
     asideSteps: [
       "Первичное обсуждение в течение суток.",

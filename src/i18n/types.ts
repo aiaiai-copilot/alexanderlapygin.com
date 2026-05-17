@@ -130,6 +130,7 @@ export interface Dictionary {
     budgets: string[];
     asideEmailHeading: string;
     asideTelegramHeading: string;
+    asideGithubHeading: string;
     asideStepsHeading: string;
     asideSteps: string[];
     asideFaqHeading: string;
