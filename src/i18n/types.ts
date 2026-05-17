@@ -20,6 +20,7 @@ export interface Dictionary {
     solutions: string;
     blog: string;
     contact: string;
+    faq: string;
     openMenu: string;
     closeMenu: string;
   };
@@ -37,7 +38,6 @@ export interface Dictionary {
     emailAriaLabel: string;
     telegramAriaLabel: string;
     githubAriaLabel: string;
-    privacy: string;
     rss: string;
     copyright: (year: number) => string;
   };
@@ -108,69 +108,17 @@ export interface Dictionary {
   };
   contact: {
     title: string;
-    subtitle: string;
-    fields: {
-      name: string;
-      email: string;
-      company: string;
-      projectType: string;
-      budget: string;
-      details: string;
-      submit: string;
-      submitOpened: string;
-    };
-    placeholders: {
-      name: string;
-      email: string;
-      company: string;
-      details: string;
-      pickOne: string;
-    };
-    projectTypes: string[];
-    budgets: string[];
-    asideEmailHeading: string;
-    asideTelegramHeading: string;
-    asideGithubHeading: string;
-    asideStepsHeading: string;
-    asideSteps: string[];
-    asideFaqHeading: string;
-    asideFaq: { q: string; a: string }[];
-    charCounter: (used: number, max: number) => string;
-    charCounterWithMin: (used: number, max: number, min: number) => string;
-    submitDisabledHint: string;
-    truncatedWarning: string;
-    infoNoticeTelegram: string;
-    afterClick: {
-      heading: string;
-      hint: string;
-      emailLabel: string;
-      telegramLabel: string;
-    };
-    noJs: {
-      heading: string;
-      body: string;
-      telegramButton: string;
-      mailtoButton: string;
-    };
-    prefill: {
-      name: string;
-      email: string;
-      company: string;
-      projectType: string;
-      budget: string;
-      detailsHeading: string;
-      truncatedMarker: string;
-    };
-    errors: {
-      requiredName: string;
-      invalidEmail: string;
-      requiredDetails: string;
-      detailsTooShort: string;
-    };
+    responseHint: string;
+    primaryCta: string;
+    emailAriaLabel: string;
+    githubAriaLabel: string;
   };
-  privacy: {
+  cta: {
+    contact: string;
+  };
+  faq: {
     title: string;
-    paragraphs: string[];
+    items: { q: string; a: string }[];
   };
   notFound: {
     title: string;

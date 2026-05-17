@@ -6,473 +6,67 @@ interface Props {
 }
 const { locale } = Astro.props;
 const dict = t(locale);
-const fields = dict.contact.fields;
-const placeholders = dict.contact.placeholders;
 
 const tgUsername = import.meta.env.PUBLIC_TELEGRAM_USERNAME ?? "";
 const contactEmail = import.meta.env.PUBLIC_CONTACT_EMAIL ?? "";
 const tgDirectUrl = tgUsername ? `https://t.me/${tgUsername}` : "";
 const mailtoUrl = contactEmail ? `mailto:${contactEmail}` : "";
-
-const detailsMax = 2000;
-const detailsMin = 30;
 ---
 
-<section class="mx-auto max-w-3xl px-4 md:px-6 pt-16 md:pt-20 pb-8 text-center">
+<section class="mx-auto max-w-3xl px-4 md:px-6 pt-16 md:pt-20 pb-12 text-center">
   <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
     {dict.contact.title}
   </h1>
-  <p class="mt-4 text-lg" style="color: var(--color-text-muted);">
-    {dict.contact.subtitle}
+  <p class="mt-4 text-base md:text-lg" style="color: var(--color-text-muted);">
+    {dict.contact.responseHint}
   </p>
-</section>
 
-<section class="mx-auto max-w-6xl px-4 md:px-6 pb-16">
-  <div class="grid lg:grid-cols-[3fr_2fr] gap-8 lg:gap-12">
-    <div>
-      <noscript>
-        <style>#contact-form,#cf-after-click{display:none!important}</style>
-        <div
-          class="rounded-lg p-6 md:p-8 border space-y-4"
-          style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
-        >
-          <h2 class="text-xl font-semibold" style="color: var(--color-text);">
-            {dict.contact.noJs.heading}
-          </h2>
-          <p class="text-base" style="color: var(--color-text-muted);">
-            {dict.contact.noJs.body}
-          </p>
-          <div class="flex flex-col sm:flex-row gap-3 pt-2">
-            {tgDirectUrl && (
-              <a
-                href={tgDirectUrl}
-                rel="noopener"
-                target="_blank"
-                class="inline-flex items-center justify-center px-5 py-3 rounded-lg text-base font-semibold hover:opacity-90"
-                style="background-color: var(--color-accent); color: var(--color-accent-text);"
-              >
-                {dict.contact.noJs.telegramButton}
-              </a>
-            )}
-            {mailtoUrl && (
-              <a
-                href={mailtoUrl}
-                class="inline-flex items-center justify-center px-5 py-3 rounded-lg text-base font-semibold border hover:bg-[var(--color-bg-muted)] transition-colors"
-                style="border-color: var(--color-border); color: var(--color-text);"
-              >
-                {dict.contact.noJs.mailtoButton}
-              </a>
-            )}
-          </div>
-        </div>
-      </noscript>
-
-      <form
-        id="contact-form"
-        novalidate
-        data-locale={locale}
-        data-username={tgUsername}
-        data-email={contactEmail}
-        data-details-max={detailsMax}
-        data-details-min={detailsMin}
-        class="rounded-lg p-6 md:p-8 border space-y-5"
-        style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
+  {tgDirectUrl && (
+    <div class="mt-8">
+      <a
+        href={tgDirectUrl}
+        rel="noopener"
+        target="_blank"
+        data-track="telegram-direct"
+        class="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg text-base md:text-lg font-semibold hover:opacity-90 transition-opacity"
+        style="background-color: var(--color-accent); color: var(--color-accent-text);"
       >
-        <div>
-          <label for="cf-name" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
-            {fields.name}
-          </label>
-          <input
-            id="cf-name"
-            name="name"
-            type="text"
-            required
-            maxlength="100"
-            placeholder={placeholders.name}
-            class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)]"
-            style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
-            aria-describedby="cf-name-error"
-          />
-          <p id="cf-name-error" class="text-sm mt-1.5 hidden" style="color: var(--color-danger);"></p>
-        </div>
-
-        <div>
-          <label for="cf-email" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
-            {fields.email}
-          </label>
-          <input
-            id="cf-email"
-            name="email"
-            type="email"
-            maxlength="254"
-            placeholder={placeholders.email}
-            class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)]"
-            style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
-            aria-describedby="cf-email-error"
-          />
-          <p id="cf-email-error" class="text-sm mt-1.5 hidden" style="color: var(--color-danger);"></p>
-        </div>
-
-        <div>
-          <label for="cf-company" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
-            {fields.company}
-          </label>
-          <input
-            id="cf-company"
-            name="company"
-            type="text"
-            maxlength="200"
-            placeholder={placeholders.company}
-            class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)]"
-            style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
-          />
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-5">
-          <div>
-            <label for="cf-type" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
-              {fields.projectType}
-            </label>
-            <select
-              id="cf-type"
-              name="projectType"
-              class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)]"
-              style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
-            >
-              <option value="">{placeholders.pickOne}</option>
-              {dict.contact.projectTypes.map((opt) => (
-                <option value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label for="cf-budget" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
-              {fields.budget}
-            </label>
-            <select
-              id="cf-budget"
-              name="budget"
-              class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)]"
-              style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
-            >
-              <option value="">{placeholders.pickOne}</option>
-              {dict.contact.budgets.map((opt) => (
-                <option value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label for="cf-details" class="block text-sm font-medium mb-1.5" style="color: var(--color-text);">
-            {fields.details}
-          </label>
-          <textarea
-            id="cf-details"
-            name="details"
-            required
-            minlength={detailsMin}
-            maxlength={detailsMax}
-            rows="6"
-            placeholder={placeholders.details}
-            class="w-full rounded-md px-3 py-2.5 border text-base focus:border-[var(--color-accent)] resize-y"
-            style="background-color: var(--color-bg); border-color: var(--color-border); color: var(--color-text);"
-            aria-describedby="cf-details-error cf-details-counter"
-          ></textarea>
-          <div class="mt-1.5 flex items-start justify-between gap-3">
-            <p id="cf-details-error" class="text-sm hidden" style="color: var(--color-danger);"></p>
-            <p
-              id="cf-details-counter"
-              class="text-sm tabular-nums whitespace-nowrap ml-auto"
-              style="color: var(--color-text-muted);"
-            >
-              {dict.contact.charCounterWithMin(0, detailsMax, detailsMin)}
-            </p>
-          </div>
-        </div>
-
-        <p
-          id="cf-truncated-warning"
-          class="text-sm hidden rounded-md p-3"
-          style="color: var(--color-warning, var(--color-text)); background-color: color-mix(in oklab, var(--color-warning, var(--color-text)) 10%, transparent);"
-        >
-          {dict.contact.truncatedWarning}
-        </p>
-
-        <button
-          type="submit"
-          id="cf-submit"
-          disabled
-          class="w-full md:w-auto inline-flex items-center justify-center px-6 py-3 rounded-lg text-base font-semibold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
-          style="background-color: var(--color-accent); color: var(--color-accent-text);"
-        >
-          <span data-label-rest>{fields.submit}</span>
-          <span data-label-opened class="hidden">{fields.submitOpened}</span>
-        </button>
-
-        <p class="text-xs leading-relaxed" style="color: var(--color-text-muted);">
-          {dict.contact.infoNoticeTelegram}
-        </p>
-      </form>
-
-      <div
-        id="cf-after-click"
-        class="hidden mt-6 rounded-lg p-5 md:p-6 border"
-        style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
-      >
-        <h2 class="text-base font-semibold mb-1" style="color: var(--color-text);">
-          {dict.contact.afterClick.heading}
-        </h2>
-        <p class="text-sm mb-4" style="color: var(--color-text-muted);">
-          {dict.contact.afterClick.hint}
-        </p>
-        <div class="flex flex-col sm:flex-row gap-3">
-          {mailtoUrl && (
-            <a
-              href={mailtoUrl}
-              data-track="mailto"
-              class="inline-flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium border hover:bg-[var(--color-bg-muted)] transition-colors"
-              style="border-color: var(--color-border); color: var(--color-text);"
-            >
-              {dict.contact.afterClick.emailLabel}
-            </a>
-          )}
-          {tgDirectUrl && (
-            <a
-              href={tgDirectUrl}
-              rel="noopener"
-              target="_blank"
-              data-track="telegram-direct"
-              class="inline-flex items-center justify-center px-4 py-2.5 rounded-md text-sm font-medium border hover:bg-[var(--color-bg-muted)] transition-colors"
-              style="border-color: var(--color-border); color: var(--color-text);"
-            >
-              {dict.contact.afterClick.telegramLabel}
-            </a>
-          )}
-        </div>
-      </div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M11.944 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm5.55 8.121-1.85 8.726c-.139.616-.504.769-1.022.479l-2.823-2.082-1.362 1.31c-.151.151-.278.278-.568.278l.202-2.872 5.224-4.722c.227-.202-.05-.314-.353-.113L8.484 13.2l-2.78-.871c-.604-.189-.616-.604.126-.894l10.864-4.19c.504-.189.945.114.78.876z"/>
+        </svg>
+        <span>{dict.contact.primaryCta}</span>
+      </a>
     </div>
+  )}
 
-    <aside class="space-y-6">
-      {tgDirectUrl && (
-        <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
-          <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
-            {dict.contact.asideTelegramHeading}
-          </div>
-          <a
-            href={tgDirectUrl}
-            rel="noopener"
-            target="_blank"
-            data-track="telegram-direct"
-            class="text-base font-medium hover:underline"
-            style="color: var(--color-accent);"
-          >
-            @{tgUsername}
-          </a>
-        </div>
-      )}
-
-      {mailtoUrl && (
-        <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
-          <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
-            {dict.contact.asideEmailHeading}
-          </div>
-          <a
-            href={mailtoUrl}
-            data-track="mailto"
-            class="text-base font-medium hover:underline break-all"
-            style="color: var(--color-accent);"
-          >
-            {contactEmail}
-          </a>
-        </div>
-      )}
-
-      <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
-        <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
-          {dict.contact.asideGithubHeading}
-        </div>
-        <a
-          href="https://github.com/aiaiai-copilot"
-          rel="me noopener"
-          target="_blank"
-          class="text-base font-medium hover:underline break-all"
-          style="color: var(--color-accent);"
-        >
-          github.com/aiaiai-copilot
-        </a>
-      </div>
-
-      <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
-        <h3 class="text-sm font-semibold mb-3" style="color: var(--color-text);">
-          {dict.contact.asideStepsHeading}
-        </h3>
-        <ol class="space-y-2 text-sm" style="color: var(--color-text-muted);">
-          {dict.contact.asideSteps.map((step, i) => (
-            <li class="flex gap-2">
-              <span style="color: var(--color-accent);">{i + 1}.</span>
-              <span>{step}</span>
-            </li>
-          ))}
-        </ol>
-      </div>
-
-      <div class="rounded-lg p-5 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
-        <h3 class="text-sm font-semibold mb-3" style="color: var(--color-text);">
-          {dict.contact.asideFaqHeading}
-        </h3>
-        <dl class="space-y-3 text-sm">
-          {dict.contact.asideFaq.map((item) => (
-            <div>
-              <dt class="font-medium mb-1" style="color: var(--color-text);">{item.q}</dt>
-              <dd style="color: var(--color-text-muted);">{item.a}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </aside>
+  <div class="mt-6 flex items-center justify-center gap-2">
+    {mailtoUrl && (
+      <a
+        href={mailtoUrl}
+        data-track="mailto"
+        aria-label={dict.contact.emailAriaLabel}
+        title={contactEmail}
+        class="p-3 rounded-md border hover:bg-[var(--color-bg-muted)] transition-colors"
+        style="border-color: var(--color-border); color: var(--color-text);"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+      </a>
+    )}
+    <a
+      href="https://github.com/aiaiai-copilot"
+      rel="me noopener"
+      target="_blank"
+      aria-label={dict.contact.githubAriaLabel}
+      title="github.com/aiaiai-copilot"
+      class="p-3 rounded-md border hover:bg-[var(--color-bg-muted)] transition-colors"
+      style="border-color: var(--color-border); color: var(--color-text);"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.92.58.11.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.69 1.25 3.34.96.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18.91-.25 1.89-.38 2.86-.39.97.01 1.95.14 2.86.39 2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.11 3.04.74.81 1.18 1.84 1.18 3.1 0 4.42-2.69 5.4-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.68.8.56C20.21 21.39 23.5 17.07 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
+      </svg>
+    </a>
   </div>
 </section>
-
-<script>
-  import { buildTelegramDeeplink, type ContactFormValues } from "~/lib/contact-deeplink";
-  import { dictionaries, type Locale } from "~/i18n";
-
-  const form = document.getElementById("contact-form") as HTMLFormElement | null;
-  if (form) initContactForm(form);
-
-  function initContactForm(form: HTMLFormElement) {
-    const submitBtn = document.getElementById("cf-submit") as HTMLButtonElement | null;
-    const labelRest = submitBtn?.querySelector<HTMLElement>("[data-label-rest]") ?? null;
-    const labelOpened = submitBtn?.querySelector<HTMLElement>("[data-label-opened]") ?? null;
-    const detailsCounter = document.getElementById("cf-details-counter");
-    const truncatedWarning = document.getElementById("cf-truncated-warning");
-    const afterClick = document.getElementById("cf-after-click");
-
-    const locale = (form.dataset.locale as Locale | undefined) ?? "ru";
-    const username = form.dataset.username ?? "";
-    const detailsMax = Number(form.dataset.detailsMax) || 2000;
-    const detailsMin = Number(form.dataset.detailsMin) || 30;
-    const dict = dictionaries[locale];
-    const errors = dict.contact.errors;
-    const labels = dict.contact.prefill;
-
-    function setFieldError(field: string, message: string | null) {
-      const input = document.getElementById(`cf-${field}`) as
-        | HTMLInputElement
-        | HTMLTextAreaElement
-        | null;
-      const err = document.getElementById(`cf-${field}-error`);
-      if (!input || !err) return;
-      if (message) {
-        err.textContent = message;
-        err.classList.remove("hidden");
-        input.setAttribute("aria-invalid", "true");
-        input.style.borderColor = "var(--color-danger)";
-      } else {
-        err.textContent = "";
-        err.classList.add("hidden");
-        input.removeAttribute("aria-invalid");
-        input.style.borderColor = "var(--color-border)";
-      }
-    }
-
-    function readValues(): ContactFormValues {
-      const data = new FormData(form);
-      const get = (k: string) => ((data.get(k) as string | null) ?? "").trim();
-      return {
-        name: get("name"),
-        email: get("email") || undefined,
-        company: get("company") || undefined,
-        projectType: get("projectType") || undefined,
-        budget: get("budget") || undefined,
-        details: get("details"),
-      };
-    }
-
-    function validate(values: ContactFormValues): { valid: boolean; firstInvalid?: string } {
-      let firstInvalid: string | undefined;
-      let valid = true;
-      const fail = (field: string, message: string) => {
-        setFieldError(field, message);
-        valid = false;
-        if (!firstInvalid) firstInvalid = field;
-      };
-
-      if (!values.name) fail("name", errors.requiredName);
-      else setFieldError("name", null);
-
-      if (values.email) {
-        const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRe.test(values.email)) fail("email", errors.invalidEmail);
-        else setFieldError("email", null);
-      } else {
-        setFieldError("email", null);
-      }
-
-      if (!values.details) fail("details", errors.requiredDetails);
-      else if (values.details.length < detailsMin) fail("details", errors.detailsTooShort);
-      else setFieldError("details", null);
-
-      return { valid, firstInvalid };
-    }
-
-    function recompute() {
-      if (!submitBtn) return;
-      const values = readValues();
-      const nameOk = values.name.length > 0;
-      const detailsOk = values.details.length >= detailsMin;
-      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const emailOk = !values.email || emailRe.test(values.email);
-      const allOk = nameOk && detailsOk && emailOk;
-      submitBtn.disabled = !allOk;
-      if (allOk) submitBtn.removeAttribute("title");
-      else submitBtn.setAttribute("title", dict.contact.submitDisabledHint);
-
-      if (detailsCounter) {
-        const used = values.details.length;
-        detailsCounter.textContent =
-          used < detailsMin
-            ? dict.contact.charCounterWithMin(used, detailsMax, detailsMin)
-            : dict.contact.charCounter(used, detailsMax);
-        detailsCounter.style.color =
-          used > detailsMax ? "var(--color-danger)" : "var(--color-text-muted)";
-      }
-
-      if (truncatedWarning && username) {
-        const { truncated } = buildTelegramDeeplink(values, labels, username);
-        truncatedWarning.classList.toggle("hidden", !truncated);
-      }
-    }
-
-    form.addEventListener("input", recompute);
-    form.addEventListener("change", recompute);
-    recompute();
-
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (!submitBtn || !labelRest || !labelOpened) return;
-
-      const values = readValues();
-      const { valid, firstInvalid } = validate(values);
-      if (!valid) {
-        if (firstInvalid) document.getElementById(`cf-${firstInvalid}`)?.focus();
-        return;
-      }
-      if (!username) return;
-
-      const { url } = buildTelegramDeeplink(values, labels, username);
-      window.open(url, "_blank", "noopener");
-
-      labelRest.classList.add("hidden");
-      labelOpened.classList.remove("hidden");
-      submitBtn.disabled = true;
-      afterClick?.classList.remove("hidden");
-      window.setTimeout(() => {
-        labelRest.classList.remove("hidden");
-        labelOpened.classList.add("hidden");
-        recompute();
-      }, 3000);
-    });
-  }
-</script>

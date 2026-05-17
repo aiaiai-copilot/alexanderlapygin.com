@@ -89,7 +89,6 @@ const contactEmail = import.meta.env.PUBLIC_CONTACT_EMAIL ?? "";
     <div class="mt-10 pt-6 border-t flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-xs" style="border-color: var(--color-border); color: var(--color-text-muted);">
       <span>{dict.footer.copyright(year)}</span>
       <div class="flex flex-wrap items-center gap-4">
-        <a href={localizedPath(locale, "/privacy")} class="hover:underline">{dict.footer.privacy}</a>
         <a href={localizedPath(locale, "/blog/rss.xml")} class="hover:underline">{dict.footer.rss}</a>
       </div>
     </div>

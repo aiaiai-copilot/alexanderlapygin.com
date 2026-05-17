@@ -2,6 +2,7 @@
 import "~/styles/global.css";
 import Header from "~/components/Header.astro";
 import Footer from "~/components/Footer.astro";
+import ContactCta from "~/components/ContactCta.astro";
 import {
   alternatePath,
   bcp47,
@@ -35,6 +36,9 @@ const xDefault = new URL(
   Astro.site ?? "https://alexanderlapygin.com",
 ).toString();
 const ogImagePath = locale === "en" ? "/og-en.png" : "/og.png";
+
+const normalizedPath = path.replace(/\/$/, "") || "/";
+const showContactCta = !/^\/(en\/)?contact$/.test(normalizedPath);
 ---
 
 <!doctype html>
@@ -79,6 +83,7 @@ const ogImagePath = locale === "en" ? "/og-en.png" : "/og.png";
     <Header locale={locale} currentPath={path} />
     <main class="flex-1">
       <slot />
+      {showContactCta && <ContactCta locale={locale} />}
     </main>
     <Footer locale={locale} />
   </body>

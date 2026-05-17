@@ -8,8 +8,17 @@ const { locale } = Astro.props;
 const dict = t(locale);
 ---
 
-<section class="mx-auto max-w-3xl px-4 md:px-6 pt-16 md:pt-20 pb-8 text-center">
-  <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
+<section class="mx-auto max-w-3xl px-4 md:px-6 pt-8 md:pt-12 pb-8 text-center">
+  <img
+    src="/photo.png"
+    alt={dict.meta.siteAuthor}
+    width="160"
+    height="160"
+    class="mx-auto w-32 h-32 md:w-40 md:h-40 rounded-2xl object-cover"
+    loading="eager"
+    decoding="async"
+  />
+  <h1 class="mt-8 text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
     {dict.about.title}
   </h1>
 </section>

@@ -1,0 +1,28 @@
+---
+import { t, type Locale } from "~/i18n";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const dict = t(locale);
+---
+
+<section class="mx-auto max-w-3xl px-4 md:px-6 pt-16 md:pt-20 pb-8 text-center">
+  <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
+    {dict.faq.title}
+  </h1>
+</section>
+
+<section class="mx-auto max-w-3xl px-4 md:px-6 pb-8">
+  <div class="rounded-lg p-6 md:p-8 border" style="background-color: var(--color-bg-elev); border-color: var(--color-border);">
+    <dl class="space-y-6">
+      {dict.faq.items.map((item) => (
+        <div>
+          <dt class="font-semibold mb-2 text-base md:text-lg" style="color: var(--color-text);">{item.q}</dt>
+          <dd class="leading-relaxed" style="color: var(--color-text-muted);">{item.a}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>

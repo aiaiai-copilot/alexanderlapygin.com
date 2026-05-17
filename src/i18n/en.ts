@@ -18,6 +18,7 @@ export const en: Dictionary = {
     solutions: "Solutions",
     blog: "Blog",
     contact: "Contact",
+    faq: "FAQ",
     openMenu: "Open menu",
     closeMenu: "Close menu",
   },
@@ -36,7 +37,6 @@ export const en: Dictionary = {
     emailAriaLabel: "Send email",
     telegramAriaLabel: "Message on Telegram",
     githubAriaLabel: "Author's GitHub",
-    privacy: "Privacy policy",
     rss: "RSS",
     copyright: (year) => `© ${year} Alexander Lapygin`,
   },
@@ -179,118 +179,33 @@ export const en: Dictionary = {
     empty: "Posts are coming soon.",
   },
   contact: {
-    title: "Discuss a project",
-    subtitle:
-      "Tell me briefly what you need — I respond within 24 hours. No autoresponders.",
-    fields: {
-      name: "Name",
-      email: "Email (optional)",
-      company: "Company (optional)",
-      projectType: "Project type",
-      budget: "Budget",
-      details: "Project details",
-      submit: "Open in Telegram",
-      submitOpened: "Opened in Telegram",
-    },
-    placeholders: {
-      name: "How should I address you",
-      email: "name@company.com",
-      company: "e.g. Acme Inc.",
-      details:
-        "What needs to be done, the timeline, and constraints. Links welcome.",
-      pickOne: "Pick one...",
-    },
-    projectTypes: [
-      "New web application",
-      "API development",
-      "Technical writing",
-      "Consulting",
-      "Other",
-    ],
-    budgets: [
-      "$1k – $3k",
-      "$3k – $10k",
-      "$10k – $30k",
-      "$30k+",
-      "Not sure yet",
-    ],
-    asideEmailHeading: "Direct email",
-    asideTelegramHeading: "Direct Telegram",
-    asideGithubHeading: "GitHub",
-    asideStepsHeading: "What happens next",
-    asideSteps: [
-      "Initial discussion within 24 hours.",
-      "Technical specification and a fixed estimate.",
-      "Short delivery cycles with transparent status.",
-    ],
-    asideFaqHeading: "FAQ",
-    asideFaq: [
-      {
-        q: "Do you sign a contract?",
-        a:
-          "Yes. Standard service agreement or your own template — your call. Monthly closing documents.",
-      },
-      {
-        q: "Solo or with a team?",
-        a:
-          "Solo by default. For larger projects I assemble a team from trusted collaborators.",
-      },
-      {
-        q: "Do you support running products?",
-        a: "Yes. Fixed monthly retainer for support and development after launch.",
-      },
-      {
-        q: "What about NDA?",
-        a:
-          "Happy to sign. I never publish numbers or product names that fall under NDA.",
-      },
-    ],
-    charCounter: (used, max) => `${used} / ${max}`,
-    charCounterWithMin: (used, max, min) => `${used} / ${max} · min ${min}`,
-    submitDisabledHint:
-      "Fill in “Name” and “Project details” (at least 30 characters).",
-    truncatedWarning:
-      "Text exceeds Telegram's limit and will be truncated when opening. Shorten it or continue in Telegram.",
-    infoNoticeTelegram:
-      "Clicking «Open in Telegram» opens your Telegram client with a draft message. The message is sent from your client per Telegram's terms.",
-    afterClick: {
-      heading: "If Telegram didn't open",
-      hint: "Use email or open Telegram directly.",
-      emailLabel: "Send email",
-      telegramLabel: "Open Telegram",
-    },
-    noJs: {
-      heading: "JavaScript is required for this form",
-      body: "Reach out directly — equally fast.",
-      telegramButton: "Message on Telegram",
-      mailtoButton: "Send email",
-    },
-    prefill: {
-      name: "Name",
-      email: "Email",
-      company: "Company",
-      projectType: "Project type",
-      budget: "Budget",
-      detailsHeading: "Details",
-      truncatedMarker: "… [text truncated, continue in Telegram]",
-    },
-    errors: {
-      requiredName: "Please enter your name",
-      invalidEmail: "Looks like the email is malformed",
-      requiredDetails: "Please describe the task in a few sentences",
-      detailsTooShort: "At least 30 characters — otherwise I can't tell what's needed",
-    },
+    title: "Contacts",
+    responseHint: "I respond within 24 hours. No autoresponders.",
+    primaryCta: "Message me on Telegram",
+    emailAriaLabel: "Send email",
+    githubAriaLabel: "Open GitHub",
   },
-  privacy: {
-    title: "Privacy policy",
-    paragraphs: [
-      "The operator of alexanderlapygin.com is Alexander Lapygin. For inquiries about personal-data processing, use the email shown in the site footer.",
-      "The site does not process personal data on its server. The contact form uses a Telegram deeplink: clicking «Open in Telegram» builds a URL in the visitor's browser and opens the visitor's Telegram client with a draft message. Form fields are not sent to the site's server. The visitor sends the message from their Telegram client themselves; its handling is governed by the visitor's agreement with Telegram.",
-      "The hosting provider (Beget, Russian Federation) keeps standard HTTP logs: IP address, User-Agent, requested URL. Retention is governed by the provider's policy.",
-      "No third-party analytics counters, advertising scripts, or cookie-consent banners are present. The browser's localStorage may store the theme preference (technical functionality, no consent required).",
-      "When a visitor reaches out via Telegram or email, the author handles the messages as ordinary business correspondence: stored in Telegram and the author's mailbox per those services' policies; retention — up to 12 months from the inquiry or until the engagement concludes.",
-      "Requests to clarify, restrict, delete, or port personal data should be sent to the author's email shown in the footer. Response time — no more than 30 days (152-FZ).",
-      "The date of the last policy update matches the date of the last commit to the site's git repository.",
+  cta: {
+    contact: "Get in touch",
+  },
+  faq: {
+    title: "Frequently Asked Questions",
+    items: [
+      {
+        q: "What is needed to start?",
+        a:
+          "An idea or a general description of the task is enough. I help with formalizing requirements, drafting technical specifications, and designing the solution.",
+      },
+      {
+        q: "What does the client get?",
+        a:
+          "A completely self-sufficient project: source code, deployed infrastructure, and comprehensive documentation adapted for LLM (via SDD). An asset that the client owns 100%.",
+      },
+      {
+        q: "Do you work with existing code (improvements, bug fixes)?",
+        a:
+          "My specialization is building new projects and autonomous microservices from scratch. This guarantees maximum speed and quality. Support for legacy code is usually not considered unless it involves a complete rewrite.",
+      },
     ],
   },
   notFound: {
