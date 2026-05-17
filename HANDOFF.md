@@ -1,9 +1,9 @@
 # HANDOFF
 
 **Date:** 2026-05-17
-**Branch:** `main` (впереди `origin/main` на 10 коммитов — Phases 1-4 контент-трека + Phase 3 fix `367882a` + content-realign `744b059` + 4 handoff'а; рабочее дерево чистое до этого handoff-коммита) — последний содержательный коммит `744b059` feat(content): align about/solutions/blog/projects with prod source-of-truth (2026-05-17), не запушен.
+**Branch:** `main` (впереди `origin/main` на 1 коммит — `c3def4a` UI; всё до него запушено, рабочее дерево чистое до этого handoff-коммита) — последний содержательный коммит `c3def4a` feat(ui): centered prod-style layout across pages (2026-05-17), не запушен.
 
-Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, **обновлён 2026-05-17** до релиза `20260516T221717Z` (CSP-фикс: все скрипты внешние, theme toggle и mobile menu работают под строгим `script-src 'self'`; всё, что было в предыдущем релизе `20260516T212815Z`, тоже здесь — sitemap, RSS per-locale, og:image, favicon-стек, twitter:card, очищенная карточка minimal-backend). Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
+Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, **обновлён 2026-05-17** до релиза `20260517T110530Z` (контент-трек Phases 1-4 + content-realign `744b059` — но НЕ UI-сессия `c3def4a`). Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
 ## In-flight context
 
@@ -23,16 +23,17 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
 
 ### Что осталось недоделанным
 
-1. **Контент-трек pre-cutover — ВСЕ 4 ФАЗЫ ЗАКРЫТЫ ЛОКАЛЬНО + content-realign** (`c2da2a1` + `9777ca9` + `25ef234` + fix `367882a` + `7e93350` + `744b059`). Spec: `docs/superpowers/specs/2026-05-17-content-seed-from-prod-design.md`. План: `docs/superpowers/plans/2026-05-17-content-seed-from-prod.md`.
+1. **Контент-трек pre-cutover — ВСЕ 4 ФАЗЫ ЗАКРЫТЫ + content-realign + UI** (`c2da2a1` + `9777ca9` + `25ef234` + fix `367882a` + `7e93350` + `744b059` + `c3def4a`). Spec: `docs/superpowers/specs/2026-05-17-content-seed-from-prod-design.md`. План: `docs/superpowers/plans/2026-05-17-content-seed-from-prod.md`.
    - Phase 1 (`c2da2a1`): seed posts/projects из прод-источника.
    - Phase 2 (`9777ca9`): i18n rewrite + HomePage rename/tagline.
    - Phase 3 (`25ef234` + fix `367882a`): HomePage rewire на `getCollection` + kind-aware project links.
    - Phase 4 (`7e93350`): og-en.svg + locale-conditional og:image/twitter:image в BaseLayout + nginx `/portfolio/` alias.
-   - **Content-realign (`744b059`, эта сессия):** ручной разворот контента под прод как single source of truth — заменены/удалены seed-скелетоны, see "Session 2026-05-17" ниже. Расхождение со spec'ом сознательное, фиксируется в коде.
-   - **Подход исполнения (Phases 1-4):** `superpowers:subagent-driven-development`. Content-realign в этой сессии — ad-hoc, без плана/спеки, по интерактивной правке UI с просмотром в dev-сервере.
+   - **Content-realign (`744b059`):** ручной разворот контента под прод как single source of truth — заменены/удалены seed-скелетоны.
+   - **UI (`c3def4a`, эта сессия):** прод-стиль layout на всех страницах — центрированный hero с круглым фото, удалены секции «Клиентские проекты»/«Последние публикации» и «Что вы получаете», GitHub-ссылка переключена на `aiaiai-copilot`. См. "Session 2026-05-17 (десятая)" ниже.
+   - **Подход исполнения (Phases 1-4):** `superpowers:subagent-driven-development`. Content-realign и UI — ad-hoc, без плана/спеки, интерактивная правка с просмотром в `npm run dev`.
    - Открытые элементы спеки §7 (требуют авторской работы, не блокируют коммиты, блокируют cutover): реальный `liveUrl` для `voice-to-spec` (сейчас `-tbd` placeholder в `c2da2a1`); реальный body для `llm-spec-tools` (placeholder body «## Цель / ## Состояние» в `c2da2a1`); подготовка `/var/www/alexanderlapygin.com/legacy/` extraction на VPS (на cutover'е); ручной редизайн `og-en.svg` если хочется более полированный визуал. **Закрыто/устарело:** single-locale showcase'ы и EN-solutions skeleton'ы `spec-trio`/`static-site-with-ssr` — удалены в `744b059`, заменены на прод-витрину (oauth/telegram/sbp/saas).
 
-2. **Redeploy stage с актуальным build'ом** — отдельная сессия. Текущий stage-релиз `20260516T221717Z` от 2026-05-17 включает только технический трек + CSP-фикс; **контент-трек Phases 1-4 ещё НЕ задеплоен на stage**. Перед redeploy: `npm run build` локально → upload `dist/` → `/var/www/alexanderlapygin.com/stage-releases/<новый-TS>/` → atomic switch `stage-html` симлинка. Smoke по спеке §5 + добавить `/portfolio/living-tags/living-tags-prototype/` (рекомендация из final integration review Phase 4 — spec'овый smoke-loop сейчас покрывает только Astro-URL'ы).
+2. **Redeploy stage с актуальным build'ом** — отдельная сессия. Текущий stage-релиз `20260517T110530Z` (от этой сессии) включает Phases 1-4 + content-realign `744b059`; **UI-сессия `c3def4a` ещё НЕ задеплоена на stage**. Перед redeploy: `npm run build` локально → upload `dist/` → `/var/www/alexanderlapygin.com/stage-releases/<новый-TS>/` → atomic switch `stage-html` симлинка. Smoke по спеке §5 + добавить `/portfolio/living-tags/living-tags-prototype/`. На VPS уже 4 стейдж-релиза (классификатор заблокировал prune самого старого `20260515T233747Z` без явного «delete»); если диск критичен — почистить руками или явно разрешить классификатору в следующей сессии.
 
 3. **Cutover stage→prod** (после redeploy stage + smoke — единственный оставшийся блокер; CSP-фикс закрыт в `cece042`):
    - Pre-check повтор: блокеры из контент-трека закрыты, остальные ranking'ом OK.
@@ -54,59 +55,49 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - `package.json` script для `node src/scripts/build-branding-assets.mjs` (сейчас запускается вручную — discoverability ноль).
    - CI guard на «edited og-en.svg but forgot to commit og-en.png» (из Phase 4 final review).
 
-## Session 2026-05-17 (девятая сессия дня — content-realign)
+## Session 2026-05-17 (десятая сессия дня — stage redeploy + UI prod-alignment)
 
 ### Что сделано
 
-Интерактивный разворот контента под прод как single source of truth. Источник правды — прод-React-SPA: основной JS `https://alexanderlapygin.com/assets/index-x1YQXxU-.js` + sub-chunks (`blogPosts-BRZs9O0j.js`, `showcaseProjects-SOi9Qs7t.js`). Расхождение со spec'ом 2026-05-17-content-seed-from-prod сознательное — пользователь принимал решения в живом просмотре через `npm run dev`. Единый коммит:
+Сессия в две части: (1) stage redeploy предыдущей работы; (2) интерактивный UI-redesign под прод-стиль.
 
-- `744b059` feat(content): align about/solutions/blog/projects with prod source-of-truth
+**Stage redeploy:**
+- `npm run build` локально (23 страницы, dist 560K) → rsync `dist/` → `/var/www/alexanderlapygin.com/stage-releases/20260517T110530Z/` → atomic switch `stage-html` symlink. Содержит Phases 1-4 + content-realign `744b059`.
+- Smoke 15/15 HTTP/2 200 (главные RU+EN, blog, solutions, projects, contact, sdd-intro). Content checks: about RU/EN (МИФИ/MEPhI, Разработка/Development group, Самозанятый/Self Employed, VDI/T-Bank), solutions (4 карточки + Open links), blog (только 3 SDD-поста, без zachem/staticheskiy), og:image RU→`og.png`/EN→`og-en.png` с locale-aware alt, RSS RU/EN 3 items each. ✓ Pre-cutover-ready state.
+- Pruning старого релиза `20260515T233747Z` заблокирован классификатором; на VPS сейчас 4 стейдж-релиза (нарушение retention=3). Диск `/var` 56% used, 3.9G свободно — не критично.
 
-Изменения по областям:
+**UI prod-alignment** (`c3def4a`, единый коммит, 11 файлов, +71/−297):
+- **HomePage:** заменили АЛ-placeholder на круглое фото `public/photo.png` (500×500 PNG, 704K, скачан с прода `/assets/developer-photo-Dx5DPJwC.png`); hero центрирован, H1 = «Разработка Web-приложений» (имя ушло в header-бренд); SDD-блок центрирован внутри карточки; advantages-карточки центрированы; **удалены секции «Клиентские проекты» и «Последние публикации»** (Phase 3 наследство, не было на проде — обоснование в чате); удалён заголовок «Что вы получаете» / «What you get»; вертикальные spacing'и уменьшены (после двух итераций: сначала bump до `py-20`, потом halve по запросу — итог `pt-8 md:pt-12 pb-8 md:pb-10`).
+- **AboutPage, ProjectsCatalog, SolutionsPage, ContactPage, BlogCatalog:** все hero-секции переведены в `max-w-3xl px-4 md:px-6 ... text-center`. Из BlogCatalog убран кружок «АЛ»/«AL» и flex-row — H1 теперь центрирован, RSS-иконка absolute-positioned справа.
+- **Footer.astro:** GitHub-ссылка переключена с `github.com/alexanderlapygin` на `github.com/aiaiai-copilot` (как на проде).
+- **ContactPage:** добавлена aside-карточка «GitHub» / «GitHub» ниже Email — ссылка тоже на `aiaiai-copilot`. Тип `Dictionary.contact` расширен полем `asideGithubHeading`.
+- **i18n:** «Технический партнер» → «Техническое партнёрство»; «Technical Partner» → «Technical Partnership».
 
-- **About (`src/i18n/{ru,en}.ts` + `src/components/AboutPage.astro` + `src/i18n/types.ts`):**
-  - Опечатка: «не ваша» → «не моя» (RU).
-  - Группа экспертизы **Разработка** / **Development** восстановлена из прода (с bullet-списком «инструменты ИИ: Claude Code / Antigravity / Lovable / и др.»); заменила две stage-группы (AI-инструменты + Документация).
-  - Timeline: добавлены две прод-записи (Самозанятый 2025—наст., VDI/Росбанк/Т-Банк 2000—2025), потом две stage-записи (2023—наст., 2018—2023) удалены — остались только прод. Тип timeline расширен опциональным `company`, `summary` сделан опциональным; renderer показывает оба поля условно.
-  - Education: интервал убран, заменено на «МИФИ — прикладная математика» / «MEPhI — Applied Mathematics»; тип `period` сделан опциональным, renderer условный.
-  - CTA-блок «Обсудить проект» удалён.
+Не сделано (пользователь решил оставить): «Разработка Web-приложений» → «Разработка Web-приложений и сайтов» (обсудили pros/cons — оставили текущее позиционирование).
 
-- **Solutions (`src/components/SolutionsPage.astro` + `src/content/solutions/{ru,en}/*`):**
-  - SolutionsPage перепаян с хардкоженного массива на `getCollection("solutions")` с фильтром по локали и сортировкой по `order`. Удалён неиспользуемый импорт `localizedPath`.
-  - Содержимое полностью заменено на 4 прод-витрины: `oauth-simplest` (10), `telegram-gateway` (20), `sbp-payments` (30), `saas-dashboard` (40) — обе локали. `demoUrl` сверены с прод-роутером showcase-чанка: `/showcase/oauth/simplest/`, `/showcase/telegram-bot/messaging/`, `/showcase/payments/sbp/`, у saas-dashboard URL убран (на проде `isLive:false`).
-  - Удалены skeleton'ы `spec-trio` и `static-site-with-ssr` в обеих локалях.
-  - Добавлен «Open / Открыть» link в карточку (рендерится только при наличии `demoUrl`).
-  - CTA-блок «Готовы начать проект?» удалён.
-
-- **Blog (`src/content/posts/{ru,en}/*`):**
-  - Оставлены три прод-SDD-поста (`sdd-intro`, `sdd-backstory`, `sdd-first-experience`) — RU+EN. Их body уже идентичны проду (Phase 1).
-  - Удалены `zachem-spec-pered-kodom` (RU+EN) и `staticheskiy-sait-i-odna-tochka-ssr` (RU).
-
-- **Projects (`src/content/projects-{personal,saas}/`):**
-  - `living-tags-prototype.md` перенесён из `projects-personal/{ru,en}` в `projects-saas/{ru,en}` (git mv, контент без изменений).
-  - `sbp-payments.md` удалён из `projects-personal/ru` (переведён в Solutions).
-  - `scoped-tasks.md` удалён из `projects-saas/ru`.
-
-- **Home (`src/components/HomePage.astro`):** удалён нижний CTA «Обсудить проект».
-
-Build/check: `npm run check` 0/0 (64 pre-existing Zod-deprecation hint'а — unchanged). `npm run build` не запускался в этой сессии (HMR-only flow).
+Build/check: `npm run check` 0/0 (64 pre-existing Zod-deprecation hint'а — unchanged).
 
 ### Коммиты этой сессии
 
-- `744b059` feat(content): align about/solutions/blog/projects with prod source-of-truth
+- (стейдж-деплой — без коммита, только VPS-сайд изменения)
+- `c3def4a` feat(ui): centered prod-style layout across pages
 - (handoff-коммит этой сессии)
+
+Push origin: предыдущая `cf6f2e9` (handoff прошлой сессии) запушена пользователем вручную в начале этой сессии (push 11 коммитов — `30f8d94..cf6f2e9`). `c3def4a` и handoff этой сессии — НЕ запушены (классификатор требует явного approval для `git push origin main`).
 
 ### Локальное состояние (не в git)
 
-- **Фоновый процесс:** `npm run dev` поднят на `http://localhost:4321/` (Bash background ID `bzsoublsn`). Если следующая сессия начинает с разработки UI — можно переподнять; если с деплоя/cutover'а — убить.
-- **Временные дампы прод-источников** в `/tmp/`: `prod-app.js` (397 KB, основной React-bundle), `blogPosts.js` (17.9 KB), `showcase.js` (1.8 KB). Использовались как источник истины для extraction'а контента в `744b059`. Если нужно повторить расследование — пути воспроизводимы через `curl https://alexanderlapygin.com/assets/index-x1YQXxU-.js` и т.д.
-- На VPS — без изменений (нет деплоев в этой сессии). Stage retention: активный релиз `20260516T221717Z` от 2026-05-17. Контент-трек Phases 1-4 **и** content-realign (`744b059`) **не задеплоены на stage** (ждут redeploy в следующей сессии).
+- **Фоновых процессов от этой сессии нет.** `npm run dev` (PID 36890/36917) убит в конце сессии. Параллельный процесс на порту 4399 (PID 25270, запущен в 11:10 не нашей сессией) — не трогали.
+- **Временные дампы прод-источников** в `/tmp/`: `prod-app.js`, `blogPosts.js`, `showcase.js`, `prod.css`, `prod-about.html`. Релевантны если следующая сессия будет дальше переносить контент с прода — иначе можно удалить.
+- **VPS:** активный stage-релиз `/var/www/alexanderlapygin.com/stage-releases/20260517T110530Z/`, `stage-html` symlink на него. На VPS лежит 4 release-каталога (старый `20260515T233747Z` не удалён). Никаких других изменений на VPS не делали.
 
 ### Осталось недоделанным
 
 Следующая сессия:
 
-1. **Redeploy stage** с актуальным build'ом (содержит Phases 1-4 + `744b059`). Mechanism — как для текущего `stage-releases/20260516T221717Z`: `npm run build` локально → upload `dist/` → `/var/www/alexanderlapygin.com/stage-releases/<новый-TS>/` → atomic switch `stage-html` симлинка. Smoke по спеке §5 + `/portfolio/living-tags/living-tags-prototype/`. **Новое в smoke:** проверить `/solutions/`, `/en/solutions/` (4 карточки + рабочие «Open»-ссылки на 3 sub-SPA), `/about/`, `/en/about/` (Разработка-группа + 2 прод-записи timeline + МИФИ); проверить, что `/blog/`, `/en/blog/` показывают ровно 3 SDD-поста; проверить, что `/projects/living-tags-prototype/` теперь под `projects-saas` (как kind), а `/showcase/payments/sbp/` ведёт корректно.
-2. После redeploy stage + smoke — cutover stage→prod (см. общий блок «Что осталось недоделанным» п.3 в начале файла).
+1. **Redeploy stage** с UI-коммитом `c3def4a` (текущий stage `20260517T110530Z` его НЕ содержит). Тот же mechanism. Smoke добавить: проверить центрированный hero на `/`, `/en/`, отсутствие секций «Клиентские проекты» и «Последние публикации» на main, прод-стиль layout на `/about/`, `/solutions/`, `/projects/`, `/blog/`, `/contact/` (RU+EN). Проверить GitHub-карточку на `/contact/` и подвале (ведёт на `aiaiai-copilot`).
+2. Опционально перед redeploy: `git push origin main` для синхронизации (классификатор заблокирует — нужен явный approval пользователя или ручной push, как в этой сессии).
+3. Опционально: cleanup oldest stage release `20260515T233747Z` (retention=3, сейчас 4). Делать только с явным разрешением — классификатор такие действия заблокирует автоматически.
+4. После redeploy stage + smoke — cutover stage→prod (см. общий блок «Что осталось недоделанным» п.3 в начале файла).
 
 Дальше по общему блоку: открытые элементы спеки §7 (реальный `liveUrl` для voice-to-spec, body для llm-spec-tools, подготовка legacy/ extraction, опциональный редизайн og-en.svg), defense-in-depth, вне-MVP cleanup.
