@@ -42,7 +42,9 @@ const allProjects = [
   })),
 ];
 
-const featuredFirst = allProjects.filter((p) => p.featured);
+const featuredFirst = allProjects
+  .filter((p) => p.featured)
+  .sort((a, b) => b.entry.data.pubDate.getTime() - a.entry.data.pubDate.getTime());
 const rest = allProjects
   .filter((p) => !p.featured)
   .sort(
@@ -59,10 +61,6 @@ const posts = (
   .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
   .slice(0, 3);
 
-function projectHref(p: (typeof allProjects)[number]) {
-  return localizedPath(locale, `/projects/${pageSlug(p.entry.id)}`);
-}
-
 function postHref(p: (typeof posts)[number]) {
   return localizedPath(locale, `/blog/${pageSlug(p.id)}`);
 }
@@ -73,7 +71,7 @@ function projectKindLabel(kind: ProjectKind) {
   return dict.projects.saasHeading;
 }
 
-function formatDate(d: Date): string {
+function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 ---
@@ -154,33 +152,108 @@ function formatDate(d: Date): string {
       </a>
     </div>
     <div class="grid md:grid-cols-3 gap-4 md:gap-6">
-      {featuredProjects.map((p) => (
-        <a
-          href={projectHref(p)}
-          class="rounded-lg p-5 border h-full block hover:bg-[var(--color-bg-elev)] transition-colors"
-          style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
-        >
-          <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
-            {projectKindLabel(p.kind)}
-          </div>
-          <h3 class="font-semibold text-lg mb-2" style="color: var(--color-text);">
-            {p.entry.data.title}
-          </h3>
-          <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
-            {p.entry.data.description}
-          </p>
-          <div class="flex flex-wrap gap-1.5">
-            {p.entry.data.stack.slice(0, 3).map((tag) => (
-              <span
-                class="text-xs px-2 py-0.5 rounded-full"
-                style="background-color: var(--color-bg-muted); color: var(--color-text-muted);"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </a>
-      ))}
+      {featuredProjects.map((p) => {
+        if (p.kind === "client") {
+          const href = localizedPath(locale, `/projects/${pageSlug(p.entry.id)}`);
+          return (
+            <a
+              href={href}
+              class="rounded-lg p-5 border h-full block hover:bg-[var(--color-bg-elev)] transition-colors"
+              style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
+            >
+              <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
+                {projectKindLabel(p.kind)}
+              </div>
+              <h3 class="font-semibold text-lg mb-2" style="color: var(--color-text);">
+                {p.entry.data.title}
+              </h3>
+              <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
+                {p.entry.data.description}
+              </p>
+              <div class="flex flex-wrap gap-1.5">
+                {p.entry.data.stack.slice(0, 3).map((tag) => (
+                  <span class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--color-bg-muted); color: var(--color-text-muted);">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </a>
+          );
+        }
+        if (p.kind === "personal") {
+          const ed = p.entry.data as { title: string; description: string; stack: string[]; liveUrl?: string; repoUrl?: string };
+          const href = ed.liveUrl ?? ed.repoUrl ?? "#";
+          return (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener"
+              class="rounded-lg p-5 border h-full block hover:bg-[var(--color-bg-elev)] transition-colors"
+              style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
+            >
+              <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
+                {projectKindLabel(p.kind)}
+              </div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="font-semibold text-lg" style="color: var(--color-text);">
+                  {p.entry.data.title}
+                </h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-text-muted); flex-shrink: 0; margin-top: 4px;">
+                  <path d="M7 17L17 7M7 7h10v10"/>
+                </svg>
+              </div>
+              <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
+                {p.entry.data.description}
+              </p>
+              <div class="flex flex-wrap gap-1.5">
+                {p.entry.data.stack.slice(0, 3).map((tag) => (
+                  <span class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--color-bg-muted); color: var(--color-text-muted);">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </a>
+          );
+        }
+        // saas
+        const ed = p.entry.data as { title: string; description: string; stack: string[]; liveUrl?: string; comingSoon?: boolean };
+        const disabled = ed.comingSoon;
+        const Tag = disabled ? "div" : "a";
+        const href = ed.liveUrl ?? "#";
+        return (
+          <Tag
+            href={disabled ? undefined : href}
+            target={disabled ? undefined : "_blank"}
+            rel={disabled ? undefined : "noopener"}
+            class={`rounded-lg p-5 border h-full block ${disabled ? "" : "hover:bg-[var(--color-bg-elev)] transition-colors"}`}
+            style={`background-color: var(--color-bg-elev); border-color: var(--color-border);${disabled ? " opacity: 0.7;" : ""}`}
+          >
+            <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
+              {projectKindLabel(p.kind)}
+            </div>
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <h3 class="font-semibold text-lg" style="color: var(--color-text);">
+                {p.entry.data.title}
+              </h3>
+              {disabled && (
+                <span class="text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap" style="background-color: var(--color-bg-muted); color: var(--color-text-muted);">
+                  {dict.projects.comingSoon}
+                </span>
+              )}
+            </div>
+            <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
+              {p.entry.data.description}
+            </p>
+            <div class="flex flex-wrap gap-1.5">
+              {p.entry.data.stack.slice(0, 3).map((tag) => (
+                <span class="text-xs px-2 py-0.5 rounded-full" style="background-color: var(--color-bg-muted); color: var(--color-text-muted);">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </Tag>
+        );
+      })}
     </div>
   </section>
 )}
@@ -207,7 +280,7 @@ function formatDate(d: Date): string {
           style="border-color: var(--color-border);"
         >
           <div class="text-xs mb-2" style="color: var(--color-text-muted);">
-            {formatDate(post.data.pubDate)}
+            {isoDate(post.data.pubDate)}
           </div>
           <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">
             {post.data.title}
