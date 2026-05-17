@@ -1,11 +1,81 @@
 ---
+import { getCollection } from "astro:content";
 import { localizedPath, t, type Locale } from "~/i18n";
+import { pageSlug } from "~/lib/slug";
 
 interface Props {
   locale: Locale;
 }
 const { locale } = Astro.props;
 const dict = t(locale);
+
+type ProjectKind = "client" | "personal" | "saas";
+
+const clientProjects = await getCollection(
+  "projects-client",
+  (e) => e.data.lang === locale,
+);
+const personalProjects = await getCollection(
+  "projects-personal",
+  (e) => e.data.lang === locale,
+);
+const saasProjects = await getCollection(
+  "projects-saas",
+  (e) => e.data.lang === locale,
+);
+
+const allProjects = [
+  ...clientProjects.map((e) => ({
+    entry: e,
+    kind: "client" as ProjectKind,
+    featured: e.data.featured ?? false,
+  })),
+  ...personalProjects.map((e) => ({
+    entry: e,
+    kind: "personal" as ProjectKind,
+    featured: false,
+  })),
+  ...saasProjects.map((e) => ({
+    entry: e,
+    kind: "saas" as ProjectKind,
+    featured: false,
+  })),
+];
+
+const featuredFirst = allProjects.filter((p) => p.featured);
+const rest = allProjects
+  .filter((p) => !p.featured)
+  .sort(
+    (a, b) => b.entry.data.pubDate.getTime() - a.entry.data.pubDate.getTime(),
+  );
+const featuredProjects = [...featuredFirst, ...rest].slice(0, 3);
+
+const posts = (
+  await getCollection(
+    "posts",
+    (e) => e.data.lang === locale && !e.data.draft,
+  )
+)
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+  .slice(0, 3);
+
+function projectHref(p: (typeof allProjects)[number]) {
+  return localizedPath(locale, `/projects/${pageSlug(p.entry.id)}`);
+}
+
+function postHref(p: (typeof posts)[number]) {
+  return localizedPath(locale, `/blog/${pageSlug(p.id)}`);
+}
+
+function projectKindLabel(kind: ProjectKind) {
+  if (kind === "client") return dict.projects.clientHeading;
+  if (kind === "personal") return dict.projects.personalHeading;
+  return dict.projects.saasHeading;
+}
+
+function formatDate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
 ---
 
 <section class="mx-auto max-w-6xl px-4 md:px-6 pt-16 md:pt-24 pb-12 md:pb-20">
@@ -69,86 +139,87 @@ const dict = t(locale);
   </div>
 </section>
 
-<section class="mx-auto max-w-6xl px-4 md:px-6 py-12 md:py-16">
-  <div class="flex items-baseline justify-between mb-8 gap-4 flex-wrap">
-    <h2 class="text-2xl md:text-3xl font-semibold tracking-tight" style="color: var(--color-text);">
-      {dict.home.featuredProjectsTitle}
-    </h2>
-    <a
-      href={localizedPath(locale, "/projects")}
-      class="text-sm hover:underline"
-      style="color: var(--color-accent);"
-    >
-      {dict.home.featuredProjectsLink} →
-    </a>
-  </div>
-  <div class="grid md:grid-cols-3 gap-4 md:gap-6">
-    {[1, 2, 3].map((i) => (
-      <article
-        class="rounded-lg p-5 border h-full"
-        style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
+{featuredProjects.length > 0 && (
+  <section class="mx-auto max-w-6xl px-4 md:px-6 py-12 md:py-16">
+    <div class="flex items-baseline justify-between mb-8 gap-4 flex-wrap">
+      <h2 class="text-2xl md:text-3xl font-semibold tracking-tight" style="color: var(--color-text);">
+        {dict.home.featuredProjectsTitle}
+      </h2>
+      <a
+        href={localizedPath(locale, "/projects")}
+        class="text-sm hover:underline"
+        style="color: var(--color-accent);"
       >
-        <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
-          {locale === "ru" ? "Клиентский проект" : "Client project"}
-        </div>
-        <h3 class="font-semibold text-lg mb-2" style="color: var(--color-text);">
-          {locale === "ru" ? `Пример проекта ${i}` : `Sample project ${i}`}
-        </h3>
-        <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
-          {locale === "ru"
-            ? "Краткое описание задачи и результата. Сюда подтянутся реальные карточки из коллекции."
-            : "Short description of the brief and outcome. Real cards will be pulled from the collection."}
-        </p>
-        <div class="flex flex-wrap gap-1.5">
-          {["Astro", "TypeScript", "Postgres"].map((tag) => (
-            <span
-              class="text-xs px-2 py-0.5 rounded-full"
-              style="background-color: var(--color-bg-muted); color: var(--color-text-muted);"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      </article>
-    ))}
-  </div>
-</section>
+        {dict.home.featuredProjectsLink} →
+      </a>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 md:gap-6">
+      {featuredProjects.map((p) => (
+        <a
+          href={projectHref(p)}
+          class="rounded-lg p-5 border h-full block hover:bg-[var(--color-bg-elev)] transition-colors"
+          style="background-color: var(--color-bg-elev); border-color: var(--color-border);"
+        >
+          <div class="text-xs uppercase tracking-wider mb-2" style="color: var(--color-text-muted);">
+            {projectKindLabel(p.kind)}
+          </div>
+          <h3 class="font-semibold text-lg mb-2" style="color: var(--color-text);">
+            {p.entry.data.title}
+          </h3>
+          <p class="text-sm leading-relaxed mb-3" style="color: var(--color-text-muted);">
+            {p.entry.data.description}
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            {p.entry.data.stack.slice(0, 3).map((tag) => (
+              <span
+                class="text-xs px-2 py-0.5 rounded-full"
+                style="background-color: var(--color-bg-muted); color: var(--color-text-muted);"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+)}
 
-<section class="mx-auto max-w-6xl px-4 md:px-6 py-12 md:py-16">
-  <div class="flex items-baseline justify-between mb-8 gap-4 flex-wrap">
-    <h2 class="text-2xl md:text-3xl font-semibold tracking-tight" style="color: var(--color-text);">
-      {dict.home.latestPostsTitle}
-    </h2>
-    <a
-      href={localizedPath(locale, "/blog")}
-      class="text-sm hover:underline"
-      style="color: var(--color-accent);"
-    >
-      {dict.home.latestPostsLink} →
-    </a>
-  </div>
-  <div class="grid md:grid-cols-3 gap-4 md:gap-6">
-    {[1, 2, 3].map((i) => (
+{posts.length > 0 && (
+  <section class="mx-auto max-w-6xl px-4 md:px-6 py-12 md:py-16">
+    <div class="flex items-baseline justify-between mb-8 gap-4 flex-wrap">
+      <h2 class="text-2xl md:text-3xl font-semibold tracking-tight" style="color: var(--color-text);">
+        {dict.home.latestPostsTitle}
+      </h2>
       <a
         href={localizedPath(locale, "/blog")}
-        class="rounded-lg p-5 border block hover:bg-[var(--color-bg-elev)] transition-colors"
-        style="border-color: var(--color-border);"
+        class="text-sm hover:underline"
+        style="color: var(--color-accent);"
       >
-        <div class="text-xs mb-2" style="color: var(--color-text-muted);">
-          2026-05-{String(10 + i).padStart(2, "0")} · 5 {dict.blog.minutesShort}
-        </div>
-        <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">
-          {locale === "ru" ? `Заголовок публикации ${i}` : `Sample post title ${i}`}
-        </h3>
-        <p class="text-sm leading-relaxed" style="color: var(--color-text-muted);">
-          {locale === "ru"
-            ? "Краткое описание поста. Реальные данные подтянутся из контент-коллекции."
-            : "Short post description. Real data will come from the content collection."}
-        </p>
+        {dict.home.latestPostsLink} →
       </a>
-    ))}
-  </div>
-</section>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 md:gap-6">
+      {posts.map((post) => (
+        <a
+          href={postHref(post)}
+          class="rounded-lg p-5 border block hover:bg-[var(--color-bg-elev)] transition-colors"
+          style="border-color: var(--color-border);"
+        >
+          <div class="text-xs mb-2" style="color: var(--color-text-muted);">
+            {formatDate(post.data.pubDate)}
+          </div>
+          <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">
+            {post.data.title}
+          </h3>
+          <p class="text-sm leading-relaxed" style="color: var(--color-text-muted);">
+            {post.data.description}
+          </p>
+        </a>
+      ))}
+    </div>
+  </section>
+)}
 
 <section class="mx-auto max-w-6xl px-4 md:px-6 py-16 text-center">
   <a
