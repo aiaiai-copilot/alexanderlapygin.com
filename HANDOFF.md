@@ -1,9 +1,9 @@
 # HANDOFF
 
-**Date:** 2026-05-17
-**Branch:** `main` (впереди `origin/main` на 1 коммит — `c3def4a` UI; всё до него запушено, рабочее дерево чистое до этого handoff-коммита) — последний содержательный коммит `c3def4a` feat(ui): centered prod-style layout across pages (2026-05-17), не запушен.
+**Date:** 2026-05-17 (продолжение)
+**Branch:** `main` (впереди `origin/main` на 3 коммита — `c3def4a` UI + `567f36f` handoff + `c505292` /faq+CTA+contact rework; рабочее дерево чистое до этого handoff-коммита). Push заблокирован классификатором — пользователь должен запушить вручную.
 
-Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live с 2026-05-16, новый Astro, **обновлён 2026-05-17** до релиза `20260517T110530Z` (контент-трек Phases 1-4 + content-realign `744b059` — но НЕ UI-сессия `c3def4a`). Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
+Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live, **обновлён 2026-05-17** до релиза `20260517T172923Z` — содержит ВСЕ коммиты пост-Phase4 (UI prod-alignment `c3def4a` + текущая сессия `c505292`). Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
 ## In-flight context
 
@@ -101,3 +101,65 @@ Push origin: предыдущая `cf6f2e9` (handoff прошлой сессии
 4. После redeploy stage + smoke — cutover stage→prod (см. общий блок «Что осталось недоделанным» п.3 в начале файла).
 
 Дальше по общему блоку: открытые элементы спеки §7 (реальный `liveUrl` для voice-to-spec, body для llm-spec-tools, подготовка legacy/ extraction, опциональный редизайн og-en.svg), defense-in-depth, вне-MVP cleanup.
+
+## Session 2026-05-17 (одиннадцатая — /faq + global Contact CTA + /contact rework + privacy removal)
+
+### Что сделано
+
+Сессия в три части: (1) интерактивный UX-редизайн `/contact`; (2) выделение FAQ в самостоятельную страницу; (3) удаление политики конфиденциальности. Все правки закоммичены в `c505292` (15 файлов, +170/−839). Деплой на stage — релиз `20260517T172923Z`.
+
+**`/contact` rework:**
+- Убрали форму обратной связи целиком (noscript fallback, `<form>` со всеми полями, after-click-блок, embedded `<script>` с TG-deeplink). Также удалён `src/lib/contact-deeplink.ts` как мёртвый код.
+- Hero: H1 «Контакты» / «Contacts», без subtitle. Primary CTA — большая accent-кнопка «Напишите мне в Telegram» / «Message me on Telegram» с Telegram-иконкой и условным рендером по `PUBLIC_TELEGRAM_USERNAME`. Под ней secondary icon-only ссылки на email (`PUBLIC_CONTACT_EMAIL`) и GitHub (`aiaiai-copilot`).
+- Промежуточные итерации (см. контекст диалога): сначала был промежуточный «process+FAQ» вариант с шагами «Что будет дальше» и FAQ-карточкой ниже CTA — оба блока убраны по запросу пользователя; FAQ-контент с прода взят через `curl /assets/index-x1YQXxU-.js` (Beget Lovable-bundle) с extract'ом 3 вопросов (что нужно для старта / что получает клиент / работа с legacy).
+
+**`/faq` standalone page:**
+- Новый компонент `src/components/FaqPage.astro` + страницы `src/pages/faq.astro`, `src/pages/en/faq.astro`. Используют namespace `faq.{title, items}` в i18n.
+- Header navigation: добавлен пункт «FAQ» после «Контакты»/«Contact» (`src/components/Header.astro:26`). Стало 7 пунктов в меню в обеих локалях.
+- Альтернативы (teaser-блок на главной, text-link на /contact) рассматривались и были откатаны в этой же сессии — пользователь выбрал отдельный пункт меню.
+
+**Global Contact CTA:**
+- Новый компонент `src/components/ContactCta.astro` — accent-кнопка «Связаться» / «Get in touch» → /contact.
+- `src/layouts/BaseLayout.astro` рендерит `<ContactCta />` после `<slot />` на всех страницах, КРОМЕ `/contact` и `/en/contact` (path-based skip регуляркой `^\/(en\/)?contact$`).
+- Любая новая страница автоматически получит CTA без правок.
+
+**`/about` photo:**
+- Добавлен hero-photo (`/photo.png`, rounded-2xl, 160×160) — идентичный главной по стилю и размерам.
+
+**Privacy policy removal:**
+- Удалены страницы `src/pages/privacy.astro`, `src/pages/en/privacy.astro` и компонент `src/components/PrivacyPage.astro`. Удалена ссылка из подвала (`src/components/Footer.astro:92`). Удалены i18n-ключи `footer.privacy`, `privacy:` блок в `ru.ts`/`en.ts` и соответствующие типы. Spec/docs (декларации и `/privacy` упоминания в `docs/spec/spec.md`, `docs/spec/decisions.md`, `README.md`) — НЕ трогали, оставлены как историческая запись. Если нужна синхронизация — отдельной задачей.
+- Беседа вокруг этого решения: обсудили формальную необходимость политики (152-ФЗ ст. 18.1 ч. 2, IP-логи Beget теперь в Казахстане ⇒ трансграничная передача ст. 12 152-ФЗ с обязательным уведомлением РКН с марта 2023). Пользователь принял решение убрать политику целиком.
+
+**Прочие правки:**
+- RU hero-tagline: убраны точки в конце обеих фраз (`От идей до работающих решений\nПроекты, готовые к дальнейшему развитию людьми и AI-агентами`). EN-tagline структурно отличается (там точки — разделители внутри строки), не трогали.
+- Главное фото на главной → `rounded-full` → `rounded-2xl` (прямоугольное со скруглёнными углами, как на проде). См. `HomePage.astro:17`.
+
+**Stage deploy:**
+- `npm run build` локально (23 страницы, dist 1.2M) → rsync `dist/` → `/var/www/alexanderlapygin.com/stage-releases/20260517T172923Z/` → atomic switch `stage-html` symlink.
+- Smoke 12/12 HTTP/2 200 (RU+EN: `/`, `/about`, `/projects`, `/solutions`, `/blog`, `/contact`, `/faq` + RSS). Content checks: FAQ-вопросы на `/faq`, primary CTA «Напишите мне в Telegram»/«Message me on Telegram» на `/contact`, форма отсутствует (grep `<form|cf-name|cf-email` = 0), `/photo.png` на `/` и `/about`, `/privacy/` → 404, ContactCta присутствует на `/`, `/about/`, `/faq/` и отсутствует на `/contact/`, header-nav имеет FAQ-ссылку desktop+mobile, hero-tagline RU начинается с «От идей до работающих решений» (без точки до `\n`). ✓ Pre-cutover-ready state.
+- На VPS теперь **5 стейдж-релизов** (retention=3 нарушен — старый `20260515T233747Z` + 3 прошлых сессий + новый сегодня). Pruning классификатор блокирует. Диск `/var` 56% used, 3.9G свободно — не критично.
+
+### Коммиты этой сессии
+
+- `c505292` feat(ui,content): standalone /faq, global contact CTA, /contact rework, /about photo, remove privacy
+- (handoff-коммит этой сессии)
+
+Push origin: классификатор заблокировал `git push origin main` (требует явного approval). Пользователь должен запушить 3 коммита вручную: `c3def4a` (прошлая UI-сессия) + `567f36f` (прошлый handoff) + `c505292` (эта сессия) + handoff этой сессии.
+
+### Локальное состояние (не в git)
+
+- **Фоновых процессов нет** (npm run dev в этой сессии не запускался — пользователь смотрел через прод-URL и через stage).
+- Параллельный процесс на порту 4399 (PID 25270, не наш) — продолжает работать.
+- **Временные дампы прод-источников** в `/tmp/`: `prod-app.js`, `prod-bundle.js`, `prod-index-bundle.js` (свежий, 397600 байт — JS bundle React-приложения с прода, нужен был для extract'а FAQ-контента), `prod-contact.html`, `prod-contacts.html`, `prod-home-new.html` — можно удалить, если следующая сессия не будет дальше переносить контент.
+- **VPS:** активный stage-релиз `/var/www/alexanderlapygin.com/stage-releases/20260517T172923Z/`, `stage-html` symlink на него. На VPS лежит 5 release-каталогов (нарушение retention=3). Никаких других изменений на VPS не делали.
+
+### Осталось недоделанным
+
+Следующая сессия:
+
+1. **`git push origin main`** — пользователю запушить локальные 4 коммита (3 содержательных + handoff).
+2. **Cutover stage→prod** — теперь stage полностью готов (содержит весь pre-cutover контент + UI + structural rework). См. общий блок «Что осталось недоделанным» п.3 в начале файла. Pre-check повторить: smoke на stage проходит, prod-vhost regular-file заменяется на симлинк репо-vhost'а под Astro, legacy/ extraction из tarball'а, удалить `sbp/backend/.env` перед публикацией.
+3. **Опционально:** cleanup старых stage releases (retention=3, сейчас 5). Под явным разрешением — классификатор блокирует автоматически.
+4. **Опционально:** синхронизировать spec/docs с фактическим состоянием — `docs/spec/spec.md` и `docs/spec/decisions.md` всё ещё описывают политику конфиденциальности (§4.9, §10.1, §11) и форму контактов; `README.md:26` упоминает `/privacy` в списке маршрутов. Не блокирует cutover, но создаёт дрейф между документами и реальностью.
+
+Дальше по общему блоку: defense-in-depth (bind SBP-backend'ов на 127.0.0.1), вне-MVP cleanup (GitHub Actions деплой на stage, отключение CF Pages-прототипа, перенос prod `.env` в `/etc/sbp-backend/prod.env`).
