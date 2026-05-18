@@ -77,7 +77,6 @@ export interface Dictionary {
   };
   projects: {
     title: string;
-    subtitle: string;
     clientHeading: string;
     personalHeading: string;
     saasHeading: string;

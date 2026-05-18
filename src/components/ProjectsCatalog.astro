@@ -22,9 +22,6 @@ const saasProjects = (await getCollection("projects-saas", (e) => e.data.lang ==
   <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
     {dict.projects.title}
   </h1>
-  <p class="mt-4 text-lg" style="color: var(--color-text-muted);">
-    {dict.projects.subtitle}
-  </p>
 </section>
 
 {clientProjects.length > 0 && (

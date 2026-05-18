@@ -145,8 +145,6 @@ export const en: Dictionary = {
   },
   projects: {
     title: "Projects",
-    subtitle:
-      "Client work, personal experiments and SaaS products I've worked on.",
     clientHeading: "Client projects",
     personalHeading: "Personal projects",
     saasHeading: "SaaS",

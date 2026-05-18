@@ -149,8 +149,6 @@ export const ru: Dictionary = {
   },
   projects: {
     title: "Проекты",
-    subtitle:
-      "Клиентские проекты, личные эксперименты и SaaS-продукты, над которыми я работал.",
     clientHeading: "Клиентские проекты",
     personalHeading: "Личные проекты",
     saasHeading: "SaaS",
