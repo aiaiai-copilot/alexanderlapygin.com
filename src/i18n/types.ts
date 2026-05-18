@@ -82,10 +82,7 @@ export interface Dictionary {
     personalHeading: string;
     saasHeading: string;
     comingSoon: string;
-    repoLink: string;
-    backLink: string;
     open: string;
-    code: string;
     featuresHeading: string;
     codeLink: string;
     demoLink: string;
