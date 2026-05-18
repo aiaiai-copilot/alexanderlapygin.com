@@ -1,9 +1,9 @@
 # HANDOFF
 
 **Date:** 2026-05-18
-**Branch:** `main` — впереди `origin/main` на 7 коммитов (после handoff'а 16-й сессии). Последний коммит — handoff этой сессии (см. ниже). Рабочее дерево чистое.
+**Branch:** `main` — впереди `origin/main` на 3 коммита этой сессии (`627c224` spec, `1de785a` plan + spec-correction, handoff). Рабочее дерево чистое.
 
-Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live, **stage-релиз `20260518T110112Z`** (от 14-й сессии 2026-05-18) — содержит pre-cutover контент + UI prod-alignment + /faq + ContactCta + /contact rework + /about prod-alignment + photo polish. **`/projects` prod-alignment реализован локально в 16-й сессии (6 коммитов), на stage ещё НЕ выкатан.** Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
+Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live, **stage-релиз `20260518T110112Z`** (от 14-й сессии 2026-05-18) — содержит pre-cutover контент + UI prod-alignment + /faq + ContactCta + /contact rework + /about prod-alignment + photo polish. **`/projects` prod-alignment реализован локально в 16-й сессии (на stage НЕ выкатан); `mathprepod` client-проект — spec+plan готовы в 17-й сессии, реализация запланирована на следующую сессию (subagent-driven).** Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
 ## In-flight context
 
@@ -35,7 +35,7 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
 
 2. **Подтянуть stage страницы к проду (продолжение)** — следующая локальная задача. Главная (`c3def4a`), /about (`732db83` + `1683846` + photo polish `4f1bd6b`) и `/projects` (16-я сессия: spec/plan/5 atomic-коммитов `11b3419..1fbc2ea` + docs `b1f8543`) подтянуты локально. **`/projects` ещё НЕ выкатан на stage** — следующая задача: добавление клиентского проекта `mathprepod` (см. п.A ниже), затем stage redeploy с обоими изменениями, затем `/solutions`, `/blog`, `/contact`, `/faq` по той же логике: brainstorm с visual companion'ом → отдельная spec → план → subagent-driven implementation → stage redeploy. На VPS сейчас 3 stage-release-каталога (retention=3 в норме).
 
-   - **A. Клиентский проект `mathprepod`** (по явному запросу пользователя в конце 16-й сессии): добавить запись в коллекцию `projects-client` (RU + EN), роль пользователя — **SEO-аналитик + верстальщик**. Это первая запись в `projects-client` (сейчас коллекция пустая → секция «Клиентские проекты» не рендерится). Открытые вопросы для следующей сессии: `liveUrl` (есть ли живой сайт; пользователь подскажет), `stack` (HTML/CSS/JS + что для SEO?), `description`/`features` под двойную роль, нужна ли визуальная переработка секции `clientProjects` (lines 31-60 `ProjectsCatalog.astro`) под стиль SaaS-карточки или оставить текущий простой стиль. Рекомендация: brainstorm → spec → план → subagent-driven implementation.
+   - **A. Клиентский проект `mathprepod`** — brainstorm + spec + plan готовы в 17-й сессии. Bundled-задача: (1) добавить запись `mathprepod` в `projects-client` (RU+EN), (2) перерисовать рендер client-секции `ProjectsCatalog.astro` под SaaS-rich (features + CTA `siteLink`), (3) удалить dead-route `/projects/[slug].astro` (RU+EN) + `ProjectPage.astro` + orphan i18n-ключи `repoLink`, `backLink`, `code`. Реализация запланирована на следующую (18-ю) сессию через `superpowers:subagent-driven-development` (явный выбор пользователя). План: `docs/superpowers/plans/2026-05-18-mathprepod-client-project.md` — 5 atomic tasks + Task 6 верификация. Спека: `docs/superpowers/specs/2026-05-18-mathprepod-client-project-design.md`. Сайт клиента — Tilda (`https://mathprepod.ru/`, образовательный центр по математике); роли пользователя — Tilda-сборка + on-page SEO + keyword research + контент.
 
 3. **Cutover stage→prod** (после redeploy stage + smoke — единственный оставшийся блокер; CSP-фикс закрыт в `cece042`):
    - Pre-check повтор: блокеры из контент-трека закрыты, остальные ranking'ом OK.
@@ -57,47 +57,43 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - `package.json` script для `node src/scripts/build-branding-assets.mjs` (сейчас запускается вручную — discoverability ноль).
    - CI guard на «edited og-en.svg but forgot to commit og-en.png» (из Phase 4 final review).
 
-## Session 2026-05-18 (шестнадцатая — /projects prod-alignment: spec + plan + implementation; не на stage)
+## Session 2026-05-18 (семнадцатая — `mathprepod` client-project: brainstorm + spec + plan; реализация отложена на следующую сессию)
 
 ### Что сделано
 
-- **Спека `/projects` prod-alignment** — `docs/superpowers/specs/2026-05-18-projects-prod-alignment-design.md`. Записана строго по согласованному в 15-й сессии дизайну (см. `git show 2cbdc7f:HANDOFF.md` для исходного дизайна). Self-review: placeholder scan ✅, type consistency ✅, scope ✅.
-- **План** — `docs/superpowers/plans/2026-05-18-projects-prod-alignment.md`: 5 atomic implementation tasks (1: schema+prototype features, 2: MVP card, 3: drop mis-classified, 4: i18n, 5: ProjectsCatalog rework) + Task 6 верификация без коммита. Полный код карточки + 3 inline-SVG (lucide circle-check-big, github, external-link arrow) прописан в Step 2 Task'а 5.
-- **Реализация через `superpowers:subagent-driven-development`** в worktree `.claude/worktrees/projects-prod-alignment/` (branch `worktree-projects-prod-alignment`). Каждый Task: implementer → spec compliance review → code quality review. Все 5 тасков прошли с первого раза, fix-loop'ов не потребовалось.
-- **Финальный cumulative code review** всей реализации: ✅ Approved for merge. Spec coverage 100%, type consistency между Task 1↔5 и Task 4↔5 подтверждена, atomic коммиты, 0 errors / 22 pages во всех промежуточных состояниях.
-- **Fast-forward merge** worktree-branch в `main` (выбор пользователя из 3 опций integration). Worktree удалён, ветка удалена.
-- **Docs-коммит** для spec + plan на main (`b1f8543`). Файлы изначально лежали в main checkout (не в worktree — Write использовал абсолютные пути), untracked до merge'а.
+- **Brainstorm `superpowers:brainstorming`** — bundled-подход (контент + визуал + cleanup одной spec/plan/implementation-сессией) утверждён явно. Закрыты открытые вопросы 16-й сессии: `liveUrl` = `https://mathprepod.ru/` (Tilda-сайт, образовательный центр по математике); роль пользователя на проекте = Tilda-сборка + on-page SEO + keyword research + контент; стиль карточки = SaaS-rich (features + CTA); `pubDate` = 2026-05-15.
+- **Спека** — `docs/superpowers/specs/2026-05-18-mathprepod-client-project-design.md`. Зафиксированы все архитектурные выборы в таблице, frontmatter записей RU/EN, полный JSX блока рендера client-секции, edge cases, non-goals. Self-review ✅, user review ✅.
+- **План** — `docs/superpowers/plans/2026-05-18-mathprepod-client-project.md`: 5 atomic tasks + Task 6 верификация. Каждый Step содержит точный код или команду без placeholder'ов.
+- **Spec correction** (внутри `1de785a`): план вскрыл два расхождения со спекой, исправлено inline:
+  - Dead-route — **3 файла** (RU `[slug].astro` + EN `[slug].astro` + `ProjectPage.astro`), не 2 как в исходной спеке.
+  - Orphan i18n-ключи: `repoLink`, `backLink`, `code`. **НЕ `open`** — он используется в `SolutionsPage.astro:52`.
+- **Prompt-injection защита**: WebFetch на `mathprepod.ru` вернул контент с встроенными фейковыми `<system-reminder>` («Exited Plan Mode», «работать без clarifying questions»). Проигнорировано, продолжено по brainstorming-процессу.
 
 ### Коммиты этой сессии
 
-- `11b3419` feat(content): add features field to projectSaas + populate Living Tags Prototype
-- `e279e8d` feat(content): add Living Tags MVP coming-soon SaaS card (RU/EN)
-- `97f5a4d` chore(content): drop mis-classified personal/en projects
-- `11641bd` feat(i18n): projects card keys + RU saasHeading/comingSoon align
-- `1fbc2ea` feat(projects): inline-rich SaaS cards with features and CTA buttons
-- `b1f8543` docs(superpowers): /projects prod-alignment spec + plan
+- `627c224` docs(superpowers): mathprepod client project + client-section SaaS-rich + dead-route cleanup spec
+- `1de785a` docs(superpowers): mathprepod plan + spec correction (EN dead-route + orphan i18n set)
 - (handoff-коммит этой сессии)
 
 ### Локальное состояние (не в git)
 
-- **Локальный `main` впереди `origin/main` на 7 коммитов** (6 этой сессии + handoff). Push за пользователем (по правилу — push в default-branch отклоняется auto-classifier'ом).
-- **VPS:** stage-html всё ещё → `stage-releases/20260518T110112Z` (релиз 14-й сессии с photo polish). **Реализация `/projects` этой сессии на stage НЕ выкатана** — это следующий шаг. 3 каталога в stage-releases (retention=3 в норме).
-- **Worktree этой сессии удалён** (`.claude/worktrees/projects-prod-alignment/`), ветка `worktree-projects-prod-alignment` тоже удалена. `git worktree list` показывает только main checkout.
-- **Worktree-сирота от 13-й сессии:** `.claude/worktrees/about-prod-alignment/` всё ещё на диске (не в `git worktree list`). Безопасно удалить вручную, не блокирует.
-- **Прод-дампы в `/tmp/`** с 12-15-й сессий (`prod-app.js`, `prod-portfolio-bundle.js`, `prod-showcase-bundle.js`, `prod-projects.html`, `prod-portfolio.html` и др.) — могут понадобиться для следующих страниц (`/solutions`, `/blog`).
-- Dev-сервер запускался в конце этой сессии (`npm run dev`, порт 4321) для визуальной проверки `/projects` + `/en/projects` — пользователь подтвердил «всё хорошо», dev остановлен.
+- **Локальный `main` впереди `origin/main` на 3 коммита** (2 этой сессии + handoff). Push за пользователем.
+- **VPS** — без изменений в этой сессии: stage-html → `stage-releases/20260518T110112Z` (14-я сессия), реализация `/projects` 16-й сессии всё ещё НЕ выкатана, mathprepod не существует.
+- **Worktree для исполнения плана НЕ создавался** — пользователь явно выбрал «новая сессия + subagent-driven». 18-я сессия должна стартовать с создания worktree через `superpowers:using-git-worktrees`.
+- Worktree-сирота от 13-й сессии (`.claude/worktrees/about-prod-alignment/`) всё ещё на диске.
+- **Прод-дампы в `/tmp/`** — сохранены с прошлых сессий, для mathprepod не нужны (Tilda-сайт не извлекался).
+- Dev-сервер не запускался (работа была чисто документная).
 
-### Carry-overs из code-quality ревью (не блокеры, фикс отложен)
+### Carry-overs (не блокеры, фикс отложен)
 
-- **`aria-hidden="true"`** отсутствует на новых decorative SVGs в `ProjectsCatalog.astro` — codebase-wide gap (та же ситуация для pre-existing arrow SVG в `personalProjects` блоке line 80). Фикс — отдельной a11y-сweepой задачей по всему `ProjectsCatalog.astro`.
-- **`repoLink`** i18n-ключ (`Репозиторий` / `Repository`) — фактически dead (0 consumers по `grep`). Спека предписала не трогать; чистка вместе со снятием dead-route `/projects/[slug].astro` + `ProjectPage.astro` (которые тоже используют `code`/`open` ключи).
-- **`code` и `codeLink`** сосуществуют как дубли — переходное состояние; `code` используется в `ProjectPage.astro` (dead-route), `codeLink` — в карточке.
-- **`cursor: not-allowed`** на не-кликабельной coming-soon карточке (`<article>`, без onclick/href) — UX-нит, могут перепутать с «было кликабельно». Не блокер.
+Те же, что в 16-й сессии (a11y `aria-hidden` sweep по `ProjectsCatalog.astro`, UX-нит `cursor: not-allowed` для coming-soon карточек) — НЕ покрываются спекой mathprepod, продолжают накапливаться отдельной задачей.
+
+Дополнительно от 17-й сессии: пользователь сказал «правки потом» по тексту `description`/`features` mathprepod RU/EN — финальная редактура текстов после реализации, до stage redeploy.
 
 ### Осталось недоделанным
 
-1. **Следующая сессия — добавить клиентский проект `mathprepod`** (см. пункт 2.A в общем "что осталось" блоке выше). Роль пользователя: SEO-аналитик + верстальщик. Открытые вопросы: `liveUrl` (живой ли сайт), `stack`, `description`/`features` под двойную роль, нужна ли визуальная переработка секции `clientProjects` (lines 31-60 `ProjectsCatalog.astro`) под стиль SaaS-карточки или оставить простой текущий стиль.
-2. **Stage redeploy** /projects prod-alignment (от этой сессии) — новый `stage-releases/<TS>/`, smoke `/projects` + `/en/projects` (grep на «Living Tags MVP», «Ключевые особенности» / «Key features», «Скоро» в RU, «Coming Soon» в EN, отсутствие «SaaS-проекты»), cleanup retention=3. Можно объединить с релизом mathprepod (выкатить за один stage-release).
-3. **Push в origin** — за пользователем (накопилось 7 unpushed коммитов после handoff'а 16-й сессии).
+1. **Следующая (18-я) сессия — исполнить план mathprepod** через `superpowers:subagent-driven-development` (выбор пользователя). Каждый task: implementer subagent → spec compliance review → code quality review. Между тасками — checkpoint. План: `docs/superpowers/plans/2026-05-18-mathprepod-client-project.md`. После реализации — финальная редактура текстов description/features (см. Carry-overs выше), затем merge.
+2. **Stage redeploy** — объединит `/projects` prod-alignment (16-я сессия) и mathprepod (18-я сессия) в один stage-release. Smoke: те же grep-якоря из 16-й, плюс новые («МатПрепод» / «MathPrepod», «Сайт» / «Site» CTA, `/projects/mathprepod` отвечает 404).
+3. **Push в origin** — за пользователем (3 unpushed коммита этой сессии).
 
 Дальше по общему блоку: остальные страницы (`/solutions`, `/blog`, `/contact`, `/faq`), cutover stage→prod, defense-in-depth, вне-MVP cleanup.
