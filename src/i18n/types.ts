@@ -86,6 +86,9 @@ export interface Dictionary {
     backLink: string;
     open: string;
     code: string;
+    featuresHeading: string;
+    codeLink: string;
+    demoLink: string;
   };
   solutions: {
     title: string;

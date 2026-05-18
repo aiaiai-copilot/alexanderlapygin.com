@@ -155,6 +155,9 @@ export const en: Dictionary = {
     backLink: "← All projects",
     open: "Open",
     code: "Code",
+    featuresHeading: "Key features",
+    codeLink: "Code",
+    demoLink: "Live demo",
   },
   solutions: {
     title: "Solutions",
