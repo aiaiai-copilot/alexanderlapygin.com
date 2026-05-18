@@ -33,7 +33,7 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - **Подход исполнения (Phases 1-4):** `superpowers:subagent-driven-development`. Content-realign и UI — ad-hoc, без плана/спеки, интерактивная правка с просмотром в `npm run dev`.
    - Открытые элементы спеки §7 (требуют авторской работы, не блокируют коммиты, блокируют cutover): реальный `liveUrl` для `voice-to-spec` (сейчас `-tbd` placeholder в `c2da2a1`); реальный body для `llm-spec-tools` (placeholder body «## Цель / ## Состояние» в `c2da2a1`); подготовка `/var/www/alexanderlapygin.com/legacy/` extraction на VPS (на cutover'е); ручной редизайн `og-en.svg` если хочется более полированный визуал. **Закрыто/устарело:** single-locale showcase'ы и EN-solutions skeleton'ы `spec-trio`/`static-site-with-ssr` — удалены в `744b059`, заменены на прод-витрину (oauth/telegram/sbp/saas).
 
-2. **Подтянуть stage страницы к проду (продолжение)** — следующая локальная задача. Главная (`c3def4a`) и /about (`732db83` + `1683846` + photo polish `4f1bd6b`, через merge `1f56a66` в origin/main; stage redeployed в `stage-releases/20260518T110112Z`) уже подтянуты. Дальше — `/projects`, `/solutions`, `/blog`, `/contact`, `/faq` по той же логике: brainstorm с visual companion'ом → отдельная spec → план → subagent-driven implementation → stage redeploy. На VPS сейчас 3 stage-release-каталога (retention=3 в норме).
+2. **Подтянуть stage страницы к проду (продолжение)** — следующая локальная задача. Главная (`c3def4a`) и /about (`732db83` + `1683846` + photo polish `4f1bd6b`) уже подтянуты. **`/projects` — в работе** (15-я сессия): brainstorm завершён, решения зафиксированы в Session-блоке ниже; запись spec'а отложена на следующую сессию. Дальше — `/solutions`, `/blog`, `/contact`, `/faq` по той же логике: brainstorm с visual companion'ом → отдельная spec → план → subagent-driven implementation → stage redeploy. На VPS сейчас 3 stage-release-каталога (retention=3 в норме).
 
 3. **Cutover stage→prod** (после redeploy stage + smoke — единственный оставшийся блокер; CSP-фикс закрыт в `cece042`):
    - Pre-check повтор: блокеры из контент-трека закрыты, остальные ranking'ом OK.
@@ -55,26 +55,108 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - `package.json` script для `node src/scripts/build-branding-assets.mjs` (сейчас запускается вручную — discoverability ноль).
    - CI guard на «edited og-en.svg but forgot to commit og-en.png» (из Phase 4 final review).
 
-## Session 2026-05-18 (четырнадцатая — /about photo polish + stage deploy + push)
+## Session 2026-05-18 (пятнадцатая — /projects brainstorm + content cleanup; spec deferred)
 
 ### Что сделано
 
-- **Коммит локальной правки `/about` фото:** `src/components/AboutPage.astro:14-18` — `rounded-lg` → `rounded-2xl`, удалён inline `style=` с акцент-бордером (4px) и box-shadow. Правка была uncommitted с конца 13-й сессии (в HANDOFF не упомянута); после уточнения у пользователя — намеренный визуальный твик, не остаток экспериментов. Закоммичено как `4f1bd6b`.
-- **Stage redeploy:** `npm run build` (с `.env`) → rsync `dist/` → `/var/www/alexanderlapygin.com/stage-releases/20260518T110112Z/` → atomic switch `stage-html` (`ln -sfn ... .new && mv -Tf`). Smoke: 8/8 endpoints HTTP 200 (`/`, `/en/`, `/about/`, `/en/about/`, `/projects/`, `/contact/`, `/faq/`, `/blog/`). HTML `/about/` подтверждает `class="... rounded-2xl object-cover"` без inline `style=`.
-- **Cleanup stage-releases:** удалён старейший `20260517T110530Z`. На VPS 3 каталога: `20260517T172923Z`, `20260518T101100Z`, `20260518T110112Z` (текущий). Retention=3.
-- **Push в origin:** `4f1bd6b` → `origin/main`. Auto-classifier дважды отклонил `git push origin main` (default-branch policy без allow-rule), пользователь запушил вручную через bash-input `! git push origin main`.
+- **Удаление seed-плейсхолдеров проектов** по явному запросу пользователя: `src/content/projects-client/ru/voice-to-spec.md` и `src/content/projects-personal/ru/llm-spec-tools.md`. Оба — placeholder-контент из Phase 1 контент-трека (см. открытые элементы §7), реального liveUrl/body не имели. Коммит `ddae486`. Build после удаления — 22 страницы (было 23, пропала `/projects/voice-to-spec/`).
+- **Brainstorming `/projects` prod-alignment** через `superpowers:brainstorming` skill. Источник истины для прод-структуры: `https://alexanderlapygin.com/portfolio` (React-компонент `Portfolio-Dk-oEsFm.js`, i18n в `_E`/`BE` бандла `prod-app.js`). Прод-структура:
+  - 2 секции: «Сайты-портфолио» (1 карточка — self-reference на сам сайт) + «SaaS» (2 карточки: Living Tags Prototype + Living Tags MVP coming-soon).
+  - Карточка inline-богатая: title + description + tech-pills + Key Features grid (2col, чекмарки) + Project Metrics grid (4col) + кнопки Code/Live Demo.
+- **Зафиксированы решения для спеки** (полный дизайн ниже). Запись `docs/superpowers/specs/2026-05-18-projects-prod-alignment-design.md` **отложена на следующую сессию** по явному решению пользователя.
+- **Замечен mis-classification:** `src/content/projects-personal/en/{oauth-simplest,telegram-bot-messaging}.md` — это не проекты, а типовые решения (дубли `src/content/solutions/{ru,en}/oauth-simplest.md` и `telegram-gateway.md` с тем же `demoUrl`). Их удаление включено в дизайн (будет в плане следующей сессии).
+
+### Согласованный дизайн `/projects` prod-alignment (для записи в спеку)
+
+#### Секция 1 — контент
+
+- Все 3 collection'а (`projects-client`/`projects-personal`/`projects-saas`) **остаются** в `src/content.config.ts` (явное решение пользователя — не консолидировать, оставить гибкость на будущее).
+- В схему `projectSaas` добавить `features: z.array(z.string()).default([])`.
+- Удалить mis-classified из `projects-personal/en/`: `oauth-simplest.md`, `telegram-bot-messaging.md` (живут в `/solutions`).
+- `src/content/projects-saas/{ru,en}/living-tags-prototype.md` — расширить front-matter полем `features` (тексты — перевод features прода, см. ниже).
+- Создать `src/content/projects-saas/{ru,en}/living-tags-mvp.md` — `comingSoon: true`, тот же stack `["React", "TypeScript", "Supabase", "Claude API"]`, features из прода.
+
+**Features Living Tags Prototype (из прод-i18n, RU/EN):**
+- RU: «Глоссарий тегов», «Редактор коллекции текстов», «Автоматическая генерация тегов», «Качественный UI/UX дизайн», «Интеграция с Claude API», «Интеграция с Supabase (Database, Auth)», «Авторизация пользователя».
+- EN: "Tag glossary", "Text collection editor", "Automatic tag generation", "High-quality UI/UX design", "Claude API integration", "Supabase integration (Database, Auth)", "User authorization".
+
+(На проде в этих строках значился общий «AI API» / «AI API integration». В нашей версии замена на «Claude API» — точнее, отражает реальность. Stack тоже оставляем `Claude API` вместо `AI API` прода.)
+
+**Features Living Tags MVP (из прод-i18n):**
+- RU: «Глоссарий тегов», «Редактор коллекции текстов», «Автоматическая генерация тегов», «Качественный UI/UX дизайн», «Интеграция с Claude API», «Production-ready инфраструктура», «Система управления пользователями», «Оптимизация производительности».
+- EN: "Tag glossary", "Text collection editor", "Automatic tag generation", "High-quality UI/UX design", "Claude API integration", "Production-ready infrastructure", "User management system", "Performance optimizations".
+
+**Self-reference на сам сайт — НЕ добавляем.** Явное решение пользователя: «Нет, без self-reference». Соответственно из прод-структуры остаётся только секция «SaaS» (heading из `dict.projects.saasHeading`). Прод-секция «Сайты-портфолио» опускается полностью.
+
+#### Секция 2 — карточка (Hybrid layout)
+
+Рендерится локально в `src/components/ProjectsCatalog.astro` (без отдельного компонента — карточка остаётся inline в файле страницы).
+
+Структура карточки:
+- **Header:** title + comingSoon badge «Скоро» (правый верх, sm pill, neutral bg, только для `comingSoon: true`) + description.
+- **Tech-pills:** outline-style, все элементы `stack` (без slice 4).
+- **Features-блок:** subheading «Ключевые особенности» / «Key features» + grid 2col на md+, каждый item — inline SVG чекмарк (стиль CircleCheckBig) + текст feature.
+- **Buttons row:** «Код» (с GitHub-иконкой) если `repoUrl`; «Демо» (с ExternalLink-стрелкой) если `liveUrl`. Карточка **больше не кликабельна целиком** — клики только через кнопки.
+
+**Сетка карточек на странице:** 1col mobile, **2col md+** (как на проде; отличается от текущей 3col).
+
+**Coming-soon стилизация:**
+- Бейдж «Скоро» в правом верхнем.
+- `opacity: 0.7`, `cursor: not-allowed`.
+- Кнопки Код/Демо **скрыты целиком** (нет смысла кликать в placeholder).
+
+**Стилевая база:** все цвета через CSS-переменные дизайн-системы (`--color-text`, `--color-text-muted`, `--color-bg-elev`, `--color-border`, `--color-accent`). Не использовать lucide-react/любые React-only иконки — inline SVG.
+
+**Что НЕ берём с прода (отброшено в brainstorm'е):**
+- «Project Metrics» grid (4col, phase/type/access/status) — отказались, шумно при пустой инфе.
+- `longDescription`/featured-логика.
+- Прод-баг с «Key Features» латиницей в RU-локали — в нашей версии будет правильно локализовано через i18n.
+
+#### Секция 3 — i18n изменения (`src/i18n/{ru,en}.ts` + `types.ts`)
+
+В разделе `projects.*`:
+- Изменить `saasHeading`: RU `"SaaS-проекты"` → `"SaaS"` (match с продом).
+- Изменить `comingSoon`: RU `"Coming Soon"` → `"Скоро"` (EN остаётся `"Coming Soon"`).
+- **Новые ключи** (добавить в `types.ts` тоже):
+  - `featuresHeading`: RU `"Ключевые особенности"`, EN `"Key features"`.
+  - `codeLink`: RU `"Код"`, EN `"Code"`.
+  - `demoLink`: RU `"Демо"`, EN `"Live demo"`.
+
+Существующий `repoLink: "Репозиторий" / "Repository"` **не трогаем** — он используется где-то ещё (`codeLink` — отдельная короткая надпись для кнопки внутри карточки).
+
+#### Секция 4 — routes / dead code
+
+- `/projects/[slug].astro` и `/en/projects/[slug].astro` + компонент `ProjectPage.astro` — **оставляем** (привязаны к `projects-client`, генерируют 0 страниц сейчас, оживают если добавится client-проект). Согласовано с «оставить все 3 коллекции».
+
+#### Секция 5 — build/smoke ожидания
+
+- `npm run build`: 22 страницы (без новых маршрутов — MVP coming-soon disabled, detail нет).
+- На `/projects/` рендерится 1 секция «SaaS» с 2 карточками.
+- HTML `/projects/` содержит: «Living Tags», «Living Tags MVP», «Скоро», «Ключевые особенности», `aiaiai-copilot/living-tags-prototype`. **Не должен содержать** «SaaS-проекты», «Coming Soon» в RU.
+
+#### Скоуп вне работы
+
+Не трогаем: `/solutions`, `/blog`, `/contact`, `/faq`, главную, `/portfolio/living-tags/living-tags-prototype/` (nginx-alias на legacy/), прод-баг «Key Features» латиницей. Не делаем cutover stage→prod (отдельная задача).
 
 ### Коммиты этой сессии
 
-- `4f1bd6b` fix(ui): /about — упростить рамку фото (rounded-2xl без border/shadow)
+- `ddae486` chore(content): drop placeholder projects voice-to-spec и llm-spec-tools
 - (handoff-коммит этой сессии)
 
 ### Локальное состояние (не в git)
 
-- **VPS:** stage-html → `stage-releases/20260518T110112Z`. 3 каталога в stage-releases (retention=3). Прод не трогали.
-- **Worktree от 13-й сессии:** `.claude/worktrees/about-prod-alignment/` всё ещё на диске, но **уже отсутствует в `git worktree list`** (только main). То есть git-bookkeeping чист, осталась только каталог-«сирота». Безопасно удалить: `rm -rf .claude/worktrees/about-prod-alignment && git branch -D worktree-about-prod-alignment` (если ветка вдруг ещё есть локально) — все коммиты в `origin/main` через merge `1f56a66`.
-- **Временные дампы в `/tmp/`** (с 12-13-й сессий, см. предыдущие handoff'ы в `git log -p HANDOFF.md`): `prod-app.js`, `prod-bundle.js`, `prod-index-bundle.js`, `prod-about-bundle.js`, `prod-about.html`, `prod-contact.html`, `prod-home-new.html`, `prod-contacts.html`, `prod.css`. Пригодятся для следующих страниц (extract i18n-словарей `LE`/`$E`).
+- **Локальный main опережает `origin/main` на эти 2 коммита + предыдущий `6110c78` (handoff 14-й сессии).** То есть unpushed: `6110c78`, `ddae486`, и handoff-коммит 15-й сессии. Решение о push — за пользователем (push в default-branch отклоняется auto-classifier'ом; пользователь либо запускает `! git push origin main` сам, либо разрешает rule).
+- **VPS:** stage-html → `stage-releases/20260518T110112Z` (релиз 14-й сессии с photo polish). Удаления `voice-to-spec`/`llm-spec-tools` **на stage не выкатывались** — это будет сделано вместе с финальным `/projects`-релизом в следующей сессии. 3 каталога в stage-releases.
+- **Dev-сервер** запускался в этой сессии (`npm run dev`, task `b1vkrlkoc`, порт 4321) — может ещё работать на момент закрытия сессии; не критично.
+- **Worktree-сирота от 13-й сессии:** `.claude/worktrees/about-prod-alignment/` всё ещё на диске (не в `git worktree list`). Безопасно удалить вручную, не блокирует.
+- **Прод-дампы в `/tmp/`:** добавились в этой сессии — `prod-portfolio-bundle.js` (Portfolio React-компонент прода), `prod-showcase-projects.js`, `prod-showcase-bundle.js`, `prod-projects.html`, `prod-portfolio.html`. К прежним дампам с 12-13-й сессий (`prod-app.js`, `prod-bundle.js` и др.). Все нужны для следующих страниц.
 
 ### Осталось недоделанным
 
-См. общий блок «Что осталось недоделанным» — изменений в очереди нет, всё та же последовательность: следующая страница (`/projects` / `/solutions` / `/blog` / `/contact` / `/faq` — на выбор) → cutover stage→prod.
+1. **Следующая сессия — записать spec'у** `docs/superpowers/specs/2026-05-18-projects-prod-alignment-design.md` строго по согласованному дизайну (Секции 1-5 + скоуп вне работы выше). Спека должна пройти self-review (placeholder scan, internal consistency, scope check, ambiguity), затем user review.
+2. **После спеки** — план через `superpowers:writing-plans` (`docs/superpowers/plans/2026-05-18-projects-prod-alignment.md`).
+3. **После плана** — `superpowers:subagent-driven-development` (как в 13-й сессии для /about): implementer subagent → spec-compliance review subagent → code-quality review subagent → merge fixes if needed.
+4. **После implementation** — `npm run build` + stage redeploy в новый `stage-releases/<TS>/` + smoke + cleanup retention=3.
+5. **Push в origin** — за пользователем (накопится 3 unpushed коммита + новые).
+
+Дальше по общему блоку: следующая страница (`/solutions`/`/blog`/`/contact`/`/faq`), cutover stage→prod, defense-in-depth, вне-MVP cleanup.
