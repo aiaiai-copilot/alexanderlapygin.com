@@ -88,7 +88,7 @@ export const ru: Dictionary = {
     expertise: [
       {
         group: "Frontend",
-        items: ["TypeScript", "JavaScript", "React", "и др."],
+        items: ["TypeScript", "JavaScript", "React", "Astro", "SEO", "и др."],
       },
       {
         group: "Backend",
@@ -96,7 +96,7 @@ export const ru: Dictionary = {
       },
       {
         group: "Архитектура",
-        items: ["Чистая архитектура", "Feature-Sliced Design", "Serverless", "и др."],
+        items: ["Чистая архитектура", "Feature-Sliced Design", "Serverless", "SSG", "и др."],
       },
       {
         group: "Разработка",
