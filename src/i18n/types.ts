@@ -59,9 +59,9 @@ export interface Dictionary {
   };
   about: {
     title: string;
-    approachTitle: string;
-    approachBody: string[];
+    subtitle: string;
     expertiseTitle: string;
+    expertiseSubtitle: string;
     expertise: { group: string; items: string[] }[];
     timelineTitle: string;
     timeline: {
