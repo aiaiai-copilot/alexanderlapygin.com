@@ -1,9 +1,9 @@
 # HANDOFF
 
 **Date:** 2026-05-18
-**Branch:** `main` — впереди `origin/main` на 17 коммитов (3 от 17-й сессии + 5 mathprepod + drop-subtitle + drop-SaaS + 18-сессия handoff + 5 от 19-й сессии + handoff). Рабочее дерево чистое.
+**Branch:** `main` — впереди `origin/main` на 3 коммита от 19-й сессии (style/content + handoff) — после того, как пользователь сам запушил предыдущие 18. Рабочее дерево чистое.
 
-Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live, **stage-релиз `20260518T173716Z`** (от 19-й сессии 2026-05-18) — содержит весь pre-cutover контент + UI prod-alignment + /faq + ContactCta + /contact rework + /about prod-alignment + photo polish + **`/projects` prod-alignment + mathprepod client + drop-subtitle + drop-SaaS + Living Tags SaaS-rich + alexanderlapygin.com в personal + Astro/SEO/SSG в /about expertise + Solutions скрыт из nav + hero-фото на /blog и /contact**. Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
+Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live, **stage-релиз `20260518T175313Z`** (от 19-й сессии 2026-05-18, второй redeploy в этой же сессии — после правок surface-контраста карточек) — содержит весь pre-cutover контент + UI prod-alignment + /faq + ContactCta + /contact rework + /about prod-alignment + photo polish + `/projects` prod-alignment + mathprepod client + drop-subtitle + drop-SaaS + Living Tags SaaS-rich + alexanderlapygin.com в personal + Astro/SEO/SSG в /about expertise + Solutions скрыт из nav + hero-фото на /blog и /contact + **card surface contrast (bg-elev fill + чипы на --color-border + кнопки на --color-bg) + drop repoUrl на карточке самого сайта**. Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
 ## In-flight context
 
@@ -81,10 +81,16 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
 
 - **Personal-секция теперь рендерится в SaaS-rich** — это не временное состояние Living Tags, а новый дефолт для всех personal-карточек. Если в personal появится «компактный» проект — для него нужно либо оставить `features: []` (тогда блок features не рендерится, но карточка всё равно non-clickable со стрелкой-CTA при наличии url'ов), либо вернуть разделение через `style`-поле. Пока такого кейса нет.
 
+### Что добавилось во втором redeploy (после визуального ревью)
+
+- **`f4e45a2` style(projects): card surface contrast** — карточки на `--color-bg-elev` (как SDD-блок на главной), чипы перевешены с `bg-muted` на `--color-border` (потемнее в светлой, посветлее в тёмной — контраст с карточкой ≈удвоился), кнопки `Сайт`/`Код` на `--color-bg`, чтобы «всплывать» над карточкой. До этого карточки только бордером отличались от фона и сливались.
+- **`0283ea2` chore(content): drop repoUrl** с карточки `alexanderlapygin.com` — публичного зеркального репозитория отдельной кнопкой не выделяем; на карточке самого сайта остался только CTA `Сайт`. Living Tags prototype repoUrl сохранён.
+- **Stage redeploy** — релиз `20260518T175313Z` (rsync + atomic symlink swap). Старейший `20260518T101100Z` удалён, retention=3 соблюдён.
+
 ### Локальное состояние
 
-- **Локальный `main` впереди `origin/main` на 17 коммитов** (11 от прошлых сессий + 5 этой + handoff). Push заблокирован classifier'ом auto-mode для prefer-PR — пользователь сам пушит через `! git push origin main` после ревью HANDOFF'а.
-- **Stage** — `stage-releases/20260518T173716Z` (live).
+- **Локальный `main` впереди `origin/main` на 3 коммита** (style + content + handoff). 18 предыдущих пользователь запушил после прошлого handoff'а. Push снова за пользователем (classifier'ом auto-mode заблокирован на default branch).
+- **Stage** — `stage-releases/20260518T175313Z` (live).
 - **Prod** — без изменений (всё ещё старый React + ad-hoc patch 2026-05-16).
 - Worktree-сирота от 13-й сессии (`.claude/worktrees/about-prod-alignment/`) всё ещё на диске.
 - Dev-сервер запускался один раз для визуального smoke'а, остановлен `pkill`.
