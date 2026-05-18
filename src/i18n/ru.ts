@@ -151,12 +151,10 @@ export const ru: Dictionary = {
     title: "Проекты",
     clientHeading: "Клиентские проекты",
     personalHeading: "Личные проекты",
-    saasHeading: "SaaS",
     comingSoon: "Скоро",
     open: "Открыть",
     featuresHeading: "Ключевые особенности",
     codeLink: "Код",
-    demoLink: "Демо",
     siteLink: "Сайт",
   },
   solutions: {

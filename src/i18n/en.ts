@@ -147,12 +147,10 @@ export const en: Dictionary = {
     title: "Projects",
     clientHeading: "Client projects",
     personalHeading: "Personal projects",
-    saasHeading: "SaaS",
     comingSoon: "Coming Soon",
     open: "Open",
     featuresHeading: "Key features",
     codeLink: "Code",
-    demoLink: "Live demo",
     siteLink: "Site",
   },
   solutions: {

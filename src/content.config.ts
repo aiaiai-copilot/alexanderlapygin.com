@@ -47,22 +47,7 @@ const projectPersonal = defineCollection({
     liveUrl: z.string().url().optional(),
     image: z.string().optional(),
     repoUrl: z.string().url().optional(),
-    lang: localeField,
-  }),
-});
-
-const projectSaas = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/projects-saas" }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    pubDate: z.coerce.date(),
-    stack: z.array(z.string()).default([]),
-    liveUrl: z.string().url().optional(),
-    image: z.string().optional(),
-    repoUrl: z.string().url().optional(),
     comingSoon: z.boolean().default(false),
-    features: z.array(z.string()).default([]),
     lang: localeField,
   }),
 });
@@ -86,6 +71,5 @@ export const collections = {
   posts: post,
   "projects-client": projectClient,
   "projects-personal": projectPersonal,
-  "projects-saas": projectSaas,
   solutions: solution,
 };

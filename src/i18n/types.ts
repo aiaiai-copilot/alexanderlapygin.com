@@ -79,12 +79,10 @@ export interface Dictionary {
     title: string;
     clientHeading: string;
     personalHeading: string;
-    saasHeading: string;
     comingSoon: string;
     open: string;
     featuresHeading: string;
     codeLink: string;
-    demoLink: string;
     siteLink: string;
   };
   solutions: {
