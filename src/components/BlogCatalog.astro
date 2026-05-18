@@ -23,14 +23,23 @@ const featured = posts.filter((p) => p.data.featured);
 const regular = posts.filter((p) => !p.data.featured);
 ---
 
-<section class="mx-auto max-w-3xl px-4 md:px-6 pt-16 md:pt-20 pb-8 text-center relative">
-  <h1 class="text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
+<section class="mx-auto max-w-3xl px-4 md:px-6 pt-8 md:pt-12 pb-8 md:pb-10 text-center relative">
+  <img
+    src="/photo.png"
+    alt={dict.meta.siteAuthor}
+    width="160"
+    height="160"
+    class="mx-auto w-32 h-32 md:w-40 md:h-40 rounded-2xl object-cover"
+    loading="eager"
+    decoding="async"
+  />
+  <h1 class="mt-8 text-3xl md:text-5xl font-semibold tracking-tight" style="color: var(--color-text);">
     {dict.blog.title}
   </h1>
   <a
     href={localizedPath(locale, "/blog/rss.xml")}
     aria-label={dict.blog.rssLabel}
-    class="absolute right-4 md:right-6 top-16 md:top-20 p-2 rounded-md hover:bg-[var(--color-bg-muted)]"
+    class="absolute right-4 md:right-6 top-8 md:top-12 p-2 rounded-md hover:bg-[var(--color-bg-muted)]"
     style="color: var(--color-text-muted);"
   >
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
