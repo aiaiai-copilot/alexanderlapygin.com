@@ -1,9 +1,9 @@
 # HANDOFF
 
 **Date:** 2026-05-18
-**Branch:** `main` — в sync с `origin/main` (последний коммит `1f56a66` Merge pull request #1 from aiaiai-copilot/worktree-about-prod-alignment, 2026-05-18). Рабочее дерево чистое.
+**Branch:** `main` — в sync с `origin/main` (последний коммит `4f1bd6b` fix(ui): /about — упростить рамку фото (rounded-2xl без border/shadow), 2026-05-18). Рабочее дерево чистое.
 
-Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live, **актуальный stage-релиз `20260518T101100Z`** (от 13-й сессии 2026-05-18) — содержит весь pre-cutover контент + UI prod-alignment + /faq + ContactCta + /contact rework + /about prod-alignment. Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
+Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live, **актуальный stage-релиз `20260518T110112Z`** (от 14-й сессии 2026-05-18) — содержит весь pre-cutover контент + UI prod-alignment + /faq + ContactCta + /contact rework + /about prod-alignment + /about photo polish. Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
 ## In-flight context
 
@@ -33,7 +33,7 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - **Подход исполнения (Phases 1-4):** `superpowers:subagent-driven-development`. Content-realign и UI — ad-hoc, без плана/спеки, интерактивная правка с просмотром в `npm run dev`.
    - Открытые элементы спеки §7 (требуют авторской работы, не блокируют коммиты, блокируют cutover): реальный `liveUrl` для `voice-to-spec` (сейчас `-tbd` placeholder в `c2da2a1`); реальный body для `llm-spec-tools` (placeholder body «## Цель / ## Состояние» в `c2da2a1`); подготовка `/var/www/alexanderlapygin.com/legacy/` extraction на VPS (на cutover'е); ручной редизайн `og-en.svg` если хочется более полированный визуал. **Закрыто/устарело:** single-locale showcase'ы и EN-solutions skeleton'ы `spec-trio`/`static-site-with-ssr` — удалены в `744b059`, заменены на прод-витрину (oauth/telegram/sbp/saas).
 
-2. **Подтянуть stage страницы к проду (продолжение)** — следующая локальная задача. Главная (`c3def4a`) и /about (`732db83` + `1683846`, через merge `1f56a66` в origin/main; stage redeployed в `stage-releases/20260518T101100Z`) уже подтянуты. Дальше — `/projects`, `/solutions`, `/blog`, `/contact`, `/faq` по той же логике: brainstorm с visual companion'ом → отдельная spec → план → subagent-driven implementation → stage redeploy. На VPS сейчас 3 stage-release-каталога (retention=3 в норме после cleanup'а 13-й сессии).
+2. **Подтянуть stage страницы к проду (продолжение)** — следующая локальная задача. Главная (`c3def4a`) и /about (`732db83` + `1683846` + photo polish `4f1bd6b`, через merge `1f56a66` в origin/main; stage redeployed в `stage-releases/20260518T110112Z`) уже подтянуты. Дальше — `/projects`, `/solutions`, `/blog`, `/contact`, `/faq` по той же логике: brainstorm с visual companion'ом → отдельная spec → план → subagent-driven implementation → stage redeploy. На VPS сейчас 3 stage-release-каталога (retention=3 в норме).
 
 3. **Cutover stage→prod** (после redeploy stage + smoke — единственный оставшийся блокер; CSP-фикс закрыт в `cece042`):
    - Pre-check повтор: блокеры из контент-трека закрыты, остальные ranking'ом OK.
@@ -55,39 +55,26 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - `package.json` script для `node src/scripts/build-branding-assets.mjs` (сейчас запускается вручную — discoverability ноль).
    - CI guard на «edited og-en.svg but forgot to commit og-en.png» (из Phase 4 final review).
 
-## Session 2026-05-18 (тринадцатая — /about implementation + visual review + stage deploy + PR merge)
+## Session 2026-05-18 (четырнадцатая — /about photo polish + stage deploy + push)
 
 ### Что сделано
 
-- **Исполнен план `/about` prod-alignment** через `superpowers:subagent-driven-development` в worktree `.claude/worktrees/about-prod-alignment` (ветка `worktree-about-prod-alignment`). Implementer-subagent сделал Task 1-4 (тип `Dictionary.about` + `ru.ts` + `en.ts` + полный rewrite `AboutPage.astro`); spec-compliance review subagent → ✅; code-quality review subagent → APPROVED WITH MINOR ISSUES (0 critical, 0 important; nits — следствие директивности плана, не правил).
-- **Визуальная итерация после `npm run dev`:** убраны `<br />`-переносы в RU subtitle (текст течёт сплошным потоком), вместе с `<br />` убран ненужный `set:html`; NBHY (U+2011) + NBSP (U+00A0) в «Spec‑Driven Development» (RU и EN) чтобы фраза не ломалась посреди в карточке; «инструменты ИИ:» → «Инструменты ИИ:»; убраны `·`-bullet'ы из item-`<li>` в expertise + experience (matches prod plain-list style).
-- **Тонкое место (заметка для следующих сессий):** в фреш worktree не было `.env`, поэтому `/contact` (Telegram + email-кнопки) пустел — рендеринг под conditional'ом `tgDirectUrl/mailtoUrl && ...`. Скопировал `.env` из main repo в worktree, перезапустил dev. Issue worktree-specific; продуктовая логика `ContactPage.astro` в порядке.
-- **PR #1** (https://github.com/aiaiai-copilot/alexanderlapygin.com/pull/1) — 5 коммитов (spec + plan + session-12 handoff + feat + fix). **Смержен пользователем**, merge commit `1f56a66`. Локальный main fast-forwarded до origin/main.
-- **Stage redeploy:** `npm run build` (with `.env`) → rsync `dist/` → `/var/www/alexanderlapygin.com/stage-releases/20260518T101100Z/` → atomic switch `stage-html` (`ln -sfn ... .new && mv -Tf`). Smoke: 8/8 endpoints HTTP 200, RU /about содержит «Технические компетенции»/«Инструменты ИИ»/«Full-stack разработчик»/«Профессиональный опыт»/«МИФИ», absent — «О подходе»/«Техническая экспертиза»; EN /en/about — «Technical Expertise»/«Web Application Development»/«good maintainable»/«Professional Experience»; `/contact` — `t.me/alexanderlapygin` + `mailto:alapygin` присутствуют.
-- **Cleanup stage-releases:** удалены 3 старых (`20260515T233747Z`, `20260516T212815Z`, `20260516T221717Z`). На VPS осталось 3 каталога: `20260517T110530Z`, `20260517T172923Z`, `20260518T101100Z` (текущий). Retention=3 восстановлен.
+- **Коммит локальной правки `/about` фото:** `src/components/AboutPage.astro:14-18` — `rounded-lg` → `rounded-2xl`, удалён inline `style=` с акцент-бордером (4px) и box-shadow. Правка была uncommitted с конца 13-й сессии (в HANDOFF не упомянута); после уточнения у пользователя — намеренный визуальный твик, не остаток экспериментов. Закоммичено как `4f1bd6b`.
+- **Stage redeploy:** `npm run build` (с `.env`) → rsync `dist/` → `/var/www/alexanderlapygin.com/stage-releases/20260518T110112Z/` → atomic switch `stage-html` (`ln -sfn ... .new && mv -Tf`). Smoke: 8/8 endpoints HTTP 200 (`/`, `/en/`, `/about/`, `/en/about/`, `/projects/`, `/contact/`, `/faq/`, `/blog/`). HTML `/about/` подтверждает `class="... rounded-2xl object-cover"` без inline `style=`.
+- **Cleanup stage-releases:** удалён старейший `20260517T110530Z`. На VPS 3 каталога: `20260517T172923Z`, `20260518T101100Z`, `20260518T110112Z` (текущий). Retention=3.
+- **Push в origin:** `4f1bd6b` → `origin/main`. Auto-classifier дважды отклонил `git push origin main` (default-branch policy без allow-rule), пользователь запушил вручную через bash-input `! git push origin main`.
 
 ### Коммиты этой сессии
 
-Все попали в `origin/main` через merge `1f56a66`:
-
-- `732db83` feat(ui): /about — align with prod layout
-- `1683846` fix(ui): /about — visual review polish
+- `4f1bd6b` fix(ui): /about — упростить рамку фото (rounded-2xl без border/shadow)
 - (handoff-коммит этой сессии)
 
 ### Локальное состояние (не в git)
 
-- **Worktree:** `.claude/worktrees/about-prod-alignment/` — `ExitWorktree` вернул сессию в main repo, но **каталог worktree остался на диске** (action=remove с `discard_changes=true`, но удаление не выполнилось, рапорт `kept at ...`). Безопасно очистить вручную: `git worktree remove --force .claude/worktrees/about-prod-alignment && git branch -D worktree-about-prod-alignment` — все коммиты ветки уже в `origin/main` через merge `1f56a66`.
-- **Локальный `.env`** в worktree был скопирован из main repo (см. «Тонкое место» выше) — теперь живёт под `.claude/worktrees/about-prod-alignment/.env`. Удалится вместе с worktree-каталогом.
-- **Фоновые dev-сервера** — запускались (`npm run dev` background-task'и `b67p3pho4`, `bm8c3dt12`), оба остановлены к концу сессии.
-- **Временные дампы в `/tmp/`** (с 12-й сессии): `prod-app.js`, `prod-bundle.js`, `prod-index-bundle.js`, `prod-about-bundle.js`, `prod-about.html`, `prod-contact.html`, `prod-home-new.html`, `prod-contacts.html`, `prod.css`. Для /about больше не нужны, но пригодятся для следующих страниц (extract i18n-словарей `LE`/`$E`).
-- **VPS:** stage-html → `stage-releases/20260518T101100Z` (текущий релиз с /about prod-alignment). 3 каталога в stage-releases (retention=3 в норме). Прод не трогали.
+- **VPS:** stage-html → `stage-releases/20260518T110112Z`. 3 каталога в stage-releases (retention=3). Прод не трогали.
+- **Worktree от 13-й сессии:** `.claude/worktrees/about-prod-alignment/` всё ещё на диске, но **уже отсутствует в `git worktree list`** (только main). То есть git-bookkeeping чист, осталась только каталог-«сирота». Безопасно удалить: `rm -rf .claude/worktrees/about-prod-alignment && git branch -D worktree-about-prod-alignment` (если ветка вдруг ещё есть локально) — все коммиты в `origin/main` через merge `1f56a66`.
+- **Временные дампы в `/tmp/`** (с 12-13-й сессий, см. предыдущие handoff'ы в `git log -p HANDOFF.md`): `prod-app.js`, `prod-bundle.js`, `prod-index-bundle.js`, `prod-about-bundle.js`, `prod-about.html`, `prod-contact.html`, `prod-home-new.html`, `prod-contacts.html`, `prod.css`. Пригодятся для следующих страниц (extract i18n-словарей `LE`/`$E`).
 
 ### Осталось недоделанным
 
-См. общий блок «Что осталось недоделанным» — /about закрыт, следующий шаг очереди:
-
-1. **Следующая страница** (`/projects`, либо `/solutions`/`/blog`/`/contact`/`/faq` по выбору пользователя) — по шаблону: brainstorm с visual companion'ом из `superpowers:brainstorming` → diff stage vs прод (тексты из `/tmp/prod-*.js`) → спека → план → `superpowers:subagent-driven-development` → stage redeploy.
-2. **Cutover stage→prod** — после того как все страницы подтянуты и stage стабилен. См. общий блок п.3.
-3. **Опционально:** удалить worktree-каталог `about-prod-alignment` (см. «Локальное состояние»).
-
-Дальше по общему блоку: открытые элементы спеки §7 контент-трека (реальный `liveUrl` для voice-to-spec, body для llm-spec-tools, опц. редизайн og-en.svg), defense-in-depth, вне-MVP cleanup, синхронизация `docs/spec/*.md` и `README.md` с фактическим состоянием (privacy убрана, форма убрана).
+См. общий блок «Что осталось недоделанным» — изменений в очереди нет, всё та же последовательность: следующая страница (`/projects` / `/solutions` / `/blog` / `/contact` / `/faq` — на выбор) → cutover stage→prod.
