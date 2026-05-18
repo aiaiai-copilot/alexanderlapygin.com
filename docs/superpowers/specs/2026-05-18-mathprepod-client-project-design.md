@@ -22,8 +22,8 @@
 
 - Добавить запись `mathprepod` в `projects-client` для RU и EN с полным набором полей (title, description, pubDate, stack, liveUrl, features).
 - Переписать рендер `clientProjects` в `ProjectsCatalog.astro` под SaaS-rich визуал (features-список с чекмарками, CTA-кнопки на `liveUrl` и опционально `repoUrl`).
-- Удалить `src/pages/projects/[slug].astro` и `src/components/ProjectPage.astro` после grep-подтверждения отсутствия других consumers.
-- Удалить orphan i18n-ключи, обслуживавшие только удалённые файлы (точный список — после grep'а на implementation-фазе).
+- Удалить dead-route файлы (`src/pages/projects/[slug].astro` RU, `src/pages/en/projects/[slug].astro` EN, `src/components/ProjectPage.astro`) после grep-подтверждения отсутствия других consumers.
+- Удалить orphan i18n-ключи `repoLink`, `backLink`, `code` (подтверждено grep'ом во время написания плана: `open` НЕ orphan — используется в `SolutionsPage.astro:52`).
 - Добавить новый i18n-ключ `siteLink` для CTA «Сайт» / «Site» (для client-карточки семантически точнее, чем `demoLink: "Демо" / "Demo"`).
 
 ## Не-цели
@@ -51,8 +51,8 @@
 | `comingSoon` для client | **Не применимо**, в schema `projectClient` поля нет | Клиентские проекты в портфолио — уже live по определению |
 | Stack pills slice | **Без slice** (все элементы) | Зеркало SaaS-выбора 16-й сессии |
 | Grid контейнера client-секции | **`md:grid-cols-2`** (как SaaS) | Текущий `md:grid-cols-2 lg:grid-cols-3` отличается от SaaS — выровнять. Одна карточка займёт 1 колонку — нормально |
-| Удаление dead-route | **Удаляем** `src/pages/projects/[slug].astro` + `src/components/ProjectPage.astro` | Помечены к удалению в HANDOFF 16-й сессии. Новый client-визуал делает их недостижимыми из навигации |
-| Orphan i18n-ключи | **Удаляем** ключи, у которых после удаления dead-route 0 consumers (точный список через grep на implementation-фазе) | HANDOFF упоминает `repoLink` (0 consumers уже сейчас), `code`, `open` как кандидатов |
+| Удаление dead-route | **Удаляем 3 файла**: `src/pages/projects/[slug].astro` (RU), `src/pages/en/projects/[slug].astro` (EN), `src/components/ProjectPage.astro` | Помечены к удалению в HANDOFF 16-й сессии. Новый client-визуал делает их недостижимыми из навигации |
+| Orphan i18n-ключи | **Удаляем `repoLink`, `backLink`, `code`** (точный список зафиксирован grep'ом на этапе написания плана) | HANDOFF упоминал `repoLink`, `code`, `open` как кандидатов, но `open` используется в `SolutionsPage.astro:52` → сохраняем. `backLink` — orphan после удаления ProjectPage.astro |
 | Новый i18n-ключ `siteLink` | **Добавляем** `"Сайт" / "Site"` | Для client-карточки семантически точнее, чем `demoLink: "Демо" / "Demo"` (SaaS-демо vs live-сайт клиента) |
 | `demoLink` в SaaS | **Оставляем** как есть | Для SaaS «Демо» уместно (это прототипы/MVP, не enterprise-сайты) |
 | `codeLink` для client | **Переиспользуем** существующий `codeLink: "Код" / "Code"` | Семантически тот же концепт |
@@ -212,10 +212,11 @@ lang: en
    - `grep -rn "repoLink\|\\.code\\b\|\\.open\\b" src/` — найти всех consumers ключей-кандидатов на удаление.
 
 2. **Удалить файлы:**
-   - `rm src/pages/projects/[slug].astro`
-   - `rm src/components/ProjectPage.astro`
+   - `git rm src/pages/projects/[slug].astro`
+   - `git rm src/pages/en/projects/[slug].astro`
+   - `git rm src/components/ProjectPage.astro`
 
-3. **Удалить orphan i18n-ключи** в `src/i18n/ru.ts`, `src/i18n/en.ts`, `src/i18n/types.ts`. Точный список — по результатам grep'а. Кандидаты (по HANDOFF carry-overs): `repoLink`, `code`, `open`. Удаляем **только те**, у которых 0 consumers вне удалённых файлов.
+3. **Удалить orphan i18n-ключи** в `src/i18n/ru.ts`, `src/i18n/en.ts`, `src/i18n/types.ts`. Зафиксированный grep'ом список: `repoLink` (0 consumers уже до удаления), `backLink` (только ProjectPage.astro), `code` (только ProjectPage.astro). Ключ `open` НЕ orphan — используется в `SolutionsPage.astro:52`, не трогаем.
 
 4. **Не добавляем 301-редиректы.** URL'ы не были в prod-индексе, на stage время жизни — единицы дней внутри 14-15 сессий, навигация на них уже не ведёт с 16-й сессии (новый SaaS-визуал).
 
@@ -282,7 +283,6 @@ lang: en
 
 ## Открытые вопросы (нон-блокирующие, перенос на implementation/follow-up)
 
-- Точный список orphan i18n-ключей — определяется grep'ом на implementation-фазе.
 - Carry-overs из 16-й сессии (`aria-hidden="true"` на decorative SVG, UX-нит `cursor: not-allowed` для не-кликабельных карточек) — НЕ берём в эту спеку; накапливаются отдельной a11y-sweep задачей.
 - Schema-decision: оставлять ли `liveUrl` required в `projectClient`. Если появится клиент без публичного URL — решаем тогда (текущий mathprepod не блокирует).
 - pubDate-policy для коллекции `projects-client`: «дата завершения работ» (для mathprepod пользователь дал «май 2026», зафиксировано 2026-05-15). Документируем по факту, когда появится второй client-проект.
