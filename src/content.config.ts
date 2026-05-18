@@ -62,6 +62,7 @@ const projectSaas = defineCollection({
     image: z.string().optional(),
     repoUrl: z.string().url().optional(),
     comingSoon: z.boolean().default(false),
+    features: z.array(z.string()).default([]),
     lang: localeField,
   }),
 });
