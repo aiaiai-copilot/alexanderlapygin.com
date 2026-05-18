@@ -82,7 +82,7 @@ export const ru: Dictionary = {
   about: {
     title: "О себе",
     subtitle:
-      "Full-stack разработчик, эксперт по разработке на основе спецификаций и AI-инструментов. <br />Создаю программные продукты с нуля. Консультирую по AI- и Spec-Driven Development.<br />Использование современных AI-инструментов позволяют ускориться без потери качества.<br />Любая команда или AI смогут продолжить разработку на любом этапе.",
+      "Full-stack разработчик, эксперт по разработке на основе спецификаций и AI-инструментов. Создаю программные продукты с нуля. Консультирую по AI- и Spec-Driven Development. Использование современных AI-инструментов позволяют ускориться без потери качества. Любая команда или AI смогут продолжить разработку на любом этапе.",
     expertiseTitle: "Технические компетенции",
     expertiseSubtitle: "Full-stack разработка с использованием современных технологий",
     expertise: [
@@ -102,7 +102,7 @@ export const ru: Dictionary = {
         group: "Разработка",
         items: [
           "AI-Driven Development",
-          "Spec-Driven Development",
+          "Spec‑Driven Development",
           "Подход Contract-First",
           "Test-Driven Development",
           "Git",
@@ -110,7 +110,7 @@ export const ru: Dictionary = {
           "CI/CD",
           "Документация",
           "Интеграция с API LLM",
-          "инструменты ИИ:",
+          "Инструменты ИИ:",
           "  • Claude Code",
           "  • Antigravity",
           "  • Lovable",

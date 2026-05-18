@@ -25,8 +25,9 @@ const dict = t(locale);
   <p
     class="mt-6 max-w-3xl mx-auto text-base md:text-lg leading-relaxed"
     style="color: var(--color-text-muted);"
-    set:html={dict.about.subtitle}
-  />
+  >
+    {dict.about.subtitle}
+  </p>
 </section>
 
 <section class="mx-auto max-w-5xl px-4 md:px-6 pb-12">
@@ -75,7 +76,7 @@ const dict = t(locale);
           {g.group}
         </div>
         <ul class="space-y-1.5 text-sm" style="color: var(--color-text-muted);">
-          {g.items.map((it) => <li>· {it}</li>)}
+          {g.items.map((it) => <li>{it}</li>)}
         </ul>
       </div>
     ))}
@@ -107,7 +108,7 @@ const dict = t(locale);
             </p>
           )}
           <ul class="space-y-1.5 text-sm" style="color: var(--color-text);">
-            {row.achievements.map((a) => <li>· {a}</li>)}
+            {row.achievements.map((a) => <li>{a}</li>)}
           </ul>
         </li>
       ))}

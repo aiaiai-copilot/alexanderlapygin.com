@@ -46,7 +46,7 @@ export const en: Dictionary = {
     heroTagline:
       "Sustainable code. Clear architecture.\nDocumentation that works — for people and tools",
     sdd: {
-      title: "AI- and Spec-Driven Development",
+      title: "AI- and Spec‑Driven Development",
       description:
         "At the core of every development stage lies a detailed specification — a source for AI and a guide for humans. This guarantees implementation accuracy, relevance, and completeness of documentation at all stages of the product lifecycle.",
     },
@@ -98,7 +98,7 @@ export const en: Dictionary = {
         group: "Development",
         items: [
           "AI-Driven Development",
-          "Spec-Driven Development",
+          "Spec‑Driven Development",
           "Contract-First Approach",
           "Test-Driven Development",
           "Git",
