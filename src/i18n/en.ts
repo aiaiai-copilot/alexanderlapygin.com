@@ -158,6 +158,7 @@ export const en: Dictionary = {
     featuresHeading: "Key features",
     codeLink: "Code",
     demoLink: "Live demo",
+    siteLink: "Site",
   },
   solutions: {
     title: "Solutions",

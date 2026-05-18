@@ -162,6 +162,7 @@ export const ru: Dictionary = {
     featuresHeading: "Ключевые особенности",
     codeLink: "Код",
     demoLink: "Демо",
+    siteLink: "Сайт",
   },
   solutions: {
     title: "Решения",
