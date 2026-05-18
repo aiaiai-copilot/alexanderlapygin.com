@@ -1,9 +1,9 @@
 # HANDOFF
 
 **Date:** 2026-05-18
-**Branch:** `main` — впереди `origin/main` на 11 коммитов (3 от 17-й сессии + 5 mathprepod + drop-subtitle + drop-SaaS + handoff). Рабочее дерево чистое.
+**Branch:** `main` — впереди `origin/main` на 17 коммитов (3 от 17-й сессии + 5 mathprepod + drop-subtitle + drop-SaaS + 18-сессия handoff + 5 от 19-й сессии + handoff). Рабочее дерево чистое.
 
-Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live, **stage-релиз `20260518T110112Z`** (от 14-й сессии 2026-05-18) — содержит pre-cutover контент + UI prod-alignment + /faq + ContactCta + /contact rework + /about prod-alignment + photo polish. **`/projects` prod-alignment + mathprepod client-проект реализованы локально (на stage НЕ выкатаны); в 18-й сессии дополнительно: удалён hero-subtitle на /projects; ликвидирована SaaS-категория как концептуально не подходящая (продукт может быть одновременно SaaS и личным) — Living Tags переехал в personal-коллекцию в компактном стиле, переход на SaaS-rich визуал (как mathprepod) запланирован на 19-ю сессию.** Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
+Персональный сайт. Текущая прод-конфигурация: `alexanderlapygin.com` — всё ещё старый React-сайт, но с применённым ad-hoc patch'ем 2026-05-16 (server-level `include` security-headers snippet + `Cache-Control "no-cache"` + повторный `include` внутри `^~ /api/`). `stage.alexanderlapygin.com` — live, **stage-релиз `20260518T173716Z`** (от 19-й сессии 2026-05-18) — содержит весь pre-cutover контент + UI prod-alignment + /faq + ContactCta + /contact rework + /about prod-alignment + photo polish + **`/projects` prod-alignment + mathprepod client + drop-subtitle + drop-SaaS + Living Tags SaaS-rich + alexanderlapygin.com в personal + Astro/SEO/SSG в /about expertise + Solutions скрыт из nav + hero-фото на /blog и /contact**. Cutover stage→prod не делался. Полный VPS-снапшот — в memory `vps-state-snapshot`.
 
 ## In-flight context
 
@@ -33,9 +33,7 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - **Подход исполнения (Phases 1-4):** `superpowers:subagent-driven-development`. Content-realign и UI — ad-hoc, без плана/спеки, интерактивная правка с просмотром в `npm run dev`.
    - Открытые элементы спеки §7 (требуют авторской работы, не блокируют коммиты, блокируют cutover): реальный `liveUrl` для `voice-to-spec` (сейчас `-tbd` placeholder в `c2da2a1`); реальный body для `llm-spec-tools` (placeholder body «## Цель / ## Состояние» в `c2da2a1`); подготовка `/var/www/alexanderlapygin.com/legacy/` extraction на VPS (на cutover'е); ручной редизайн `og-en.svg` если хочется более полированный визуал. **Закрыто/устарело:** single-locale showcase'ы и EN-solutions skeleton'ы `spec-trio`/`static-site-with-ssr` — удалены в `744b059`, заменены на прод-витрину (oauth/telegram/sbp/saas).
 
-2. **Подтянуть stage страницы к проду (продолжение)** — следующая локальная задача. Главная (`c3def4a`), /about (`732db83` + `1683846` + photo polish `4f1bd6b`), `/projects` (16-я сессия: spec/plan/5 atomic-коммитов `11b3419..1fbc2ea` + docs `b1f8543`), mathprepod (18-я сессия: 5 atomic-коммитов `9db9632..5939282`), drop /projects subtitle (`dbd0a36`) и drop SaaS-category (`874a245`) подтянуты локально. **Stage НЕ обновлён** — следующая задача: переоформить Living Tags в SaaS-rich стиль (см. п.A ниже), затем stage redeploy со всеми накопленными изменениями, затем `/solutions`, `/blog`, `/contact`, `/faq` по той же логике: brainstorm с visual companion'ом → отдельная spec → план → subagent-driven implementation → stage redeploy. На VPS сейчас 3 stage-release-каталога (retention=3 в норме).
-
-   - **A. Living Tags — переоформить как mathprepod (SaaS-rich)** — нужно в новой (19-й) сессии. Сейчас Living Tags (прототип live + MVP coming-soon) находятся в `projects-personal/` после удаления SaaS-категории в `874a245` и рендерятся в компактном personal-стиле (title + description + 4 stack-чипа). Цель: рендерить их как `mathprepod` в client-секции — SaaS-rich карточкой с блоком «Ключевые особенности» (галочки) + CTA-кнопки. Подходы под brainstorm: (a) переключить рендер personal-секции на SaaS-rich (один стиль для всех personal-карточек, но features требуют схему); (b) ввести в personal-схему опциональное поле `style: "compact" | "rich"` с conditional рендером; (c) вернуть отдельную коллекцию для «моих продуктов» и переложить туда Living Tags. Текущий компактный рендер personal-секции после ad-hoc правок 18-й сессии: `<a>`-карточка с условным `href`, badge «Скоро» вместо стрелки ↗ для `comingSoon: true`, opacity 0.7 + cursor:not-allowed. Восстановление features (8 для MVP, 7 для прототипа) — найти в `git show 874a245^ -- src/content/projects-saas/`. Подход — brainstorm + spec + plan + subagent-driven, как для mathprepod.
+2. **Подтянуть stage страницы к проду (продолжение)** — 19-я сессия выкатила накопленное на stage в релизе `20260518T173716Z`. На VPS 3 stage-release-каталога (retention=3 в норме). Дальше — `/solutions`, `/blog`, `/contact`, `/faq` по той же логике: brainstorm с visual companion'ом → отдельная spec → план → subagent-driven implementation → stage redeploy. `/solutions` пока скрыт из навигации (`77f3af6`) — маршрут жив, вернётся в меню одной строкой, когда контент готов.
 
 3. **Cutover stage→prod** (после redeploy stage + smoke — единственный оставшийся блокер; CSP-фикс закрыт в `cece042`):
    - Pre-check повтор: блокеры из контент-трека закрыты, остальные ranking'ом OK.
@@ -56,6 +54,48 @@ CSP snippet на VPS (`/etc/nginx/snippets/alexanderlapygin-security-headers.con
    - Cleanup `.wrangler/` (в `.gitignore` отсутствует — артефакт CF Pages лежит в репо).
    - `package.json` script для `node src/scripts/build-branding-assets.mjs` (сейчас запускается вручную — discoverability ноль).
    - CI guard на «edited og-en.svg but forgot to commit og-en.png» (из Phase 4 final review).
+
+## Session 2026-05-18 (девятнадцатая — Living Tags SaaS-rich + alexanderlapygin.com в personal + /about expertise + hide Solutions + hero-фото на /blog и /contact + stage redeploy)
+
+### Что сделано
+
+Сессия шла ad-hoc, без brainstorm/spec/plan — пользователь явно сказал «без оверинжиниринга, просто сделай». Каждая правка — минимальная, без рефакторов вокруг.
+
+- **Living Tags переоформлены в SaaS-rich** (`f202fd9`) — выбран подход A из 18-сессии (один стиль для всей personal-секции): `features` восстановлены в personal-схему как опциональное поле, в 4 frontmatter'ах Living Tags восстановлены features из `874a245^`, personal-секция в `ProjectsCatalog.astro` переписана под client-стиль (`<article>` non-clickable, блок «Ключевые особенности» с галочками, CTA `Сайт`/`Код`, грид `md:grid-cols-2`). Coming-soon вариант для MVP: badge «Скоро» + features + без CTA + opacity 0.7.
+- **alexanderlapygin.com добавлен в personal** (`fb6f95c`) — RU+EN, описание и features под Astro SSG / без аналитики / atomic releases (то, что уезжает на prod после cutover'а). CTA: Сайт + Код.
+- **/about expertise расширены** (`8e29324`) — Frontend: + Astro, + SEO (после React); Architecture: + SSG (после Serverless). RU + EN.
+- **Solutions скрыт из навигации** (`77f3af6`) — временно, до готовности контента. Маршрут `/solutions` оставлен живым (всё ещё отвечает 200). Восстановление = одна строка в `Header.astro`.
+- **Hero-фото на /blog и /contact** (`04f8f80`) — как на главной (128/160px, `rounded-2xl`), `pt-8 md:pt-12 pb-8 md:pb-10`. На /blog RSS-иконка переехала вверх под новый отступ.
+- **Stage redeploy** — релиз `20260518T173716Z` (rsync + atomic symlink swap `stage-html`). Старейший релиз `20260517T172923Z` удалён, retention=3 соблюдён (disk 56%, 3.9G free). Smoke: 14 URL'ов 200; на `/projects` 2× Living Tags + 4× «Ключевые особенности» (mathprepod + alexanderlapygin.com + 2 Living Tags) + 1× «Скоро» (MVP); 12× «alexanderlapygin.com» (title + url-repetitions); на `/about` Astro+SEO+SSG+React присутствуют; в nav нет `href="/solutions"`; на `/blog`/`/contact` (RU+EN) `/photo.png` рендерится по 1 разу. EN parallel ✓.
+
+### Коммиты этой сессии (на main, unpushed на момент handoff'а)
+
+- `f202fd9` feat(projects): rework personal section to SaaS-rich (Living Tags)
+- `fb6f95c` feat(content): add alexanderlapygin.com to personal projects (RU + EN)
+- `8e29324` chore(about): expand expertise — Astro/SEO in Frontend, SSG in Architecture
+- `77f3af6` chore(nav): hide Solutions from header (temporary, until content is ready)
+- `04f8f80` feat(layout): add hero photo to /blog and /contact (как на главной)
+- (handoff-коммит этой сессии)
+
+### Решения, которые стоит запомнить
+
+- **Personal-секция теперь рендерится в SaaS-rich** — это не временное состояние Living Tags, а новый дефолт для всех personal-карточек. Если в personal появится «компактный» проект — для него нужно либо оставить `features: []` (тогда блок features не рендерится, но карточка всё равно non-clickable со стрелкой-CTA при наличии url'ов), либо вернуть разделение через `style`-поле. Пока такого кейса нет.
+
+### Локальное состояние
+
+- **Локальный `main` впереди `origin/main` на 17 коммитов** (11 от прошлых сессий + 5 этой + handoff). Push заблокирован classifier'ом auto-mode для prefer-PR — пользователь сам пушит через `! git push origin main` после ревью HANDOFF'а.
+- **Stage** — `stage-releases/20260518T173716Z` (live).
+- **Prod** — без изменений (всё ещё старый React + ad-hoc patch 2026-05-16).
+- Worktree-сирота от 13-й сессии (`.claude/worktrees/about-prod-alignment/`) всё ещё на диске.
+- Dev-сервер запускался один раз для визуального smoke'а, остановлен `pkill`.
+
+### Осталось недоделанным
+
+1. **Push 17 unpushed коммитов** в `origin` — за пользователем.
+2. **Контент-проход по остальным страницам** — `/solutions` (когда контент готов — вернуть пункт в `Header.astro`), `/blog` (списочный layout уже на месте, поправить контент постов), `/contact` (полировка вне hero — если нужно), `/faq` (контент). По прежней логике: brainstorm с visual companion'ом → spec → план → subagent-driven implementation → stage redeploy. Дополнительно: первая клиентская карточка mathprepod RU EN feature-3 асимметрия (EN упоминает clustering, RU нет) — финальная редактура текстов до cutover'а.
+3. **Cutover stage→prod** — следует за финальной редактурой текстов. Шаги в основном блоке выше не менялись.
+
+Дальше по общему блоку: defense-in-depth, вне-MVP cleanup.
 
 ## Session 2026-05-18 (восемнадцатая — реализация mathprepod через subagent-driven + drop /projects subtitle + drop SaaS-category)
 
