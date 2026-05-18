@@ -46,7 +46,7 @@ export const en: Dictionary = {
     heroTagline:
       "Sustainable code. Clear architecture.\nDocumentation that works — for people and tools",
     sdd: {
-      title: "AI- and Spec-Driven Development",
+      title: "AI- and Spec‑Driven Development",
       description:
         "At the core of every development stage lies a detailed specification — a source for AI and a guide for humans. This guarantees implementation accuracy, relevance, and completeness of documentation at all stages of the product lifecycle.",
     },
@@ -76,14 +76,11 @@ export const en: Dictionary = {
     cta: "Discuss a project",
   },
   about: {
-    title: "About",
-    approachTitle: "Approach",
-    approachBody: [
-      "Full-stack developer, expert in spec-driven and AI-driven development. Build software products from scratch. Consult on AI- and Spec-Driven Development.",
-      "Modern AI tools let me speed up without losing quality. Any team or AI assistant can continue development from any point.",
-      "If a problem isn't mine — I'll say so and recommend the right people.",
-    ],
-    expertiseTitle: "Technical expertise",
+    title: "About Me",
+    subtitle:
+      "Web applications built to last — with explicit structure, thorough documentation, and code that's good maintainable by developers and AI alike",
+    expertiseTitle: "Technical Expertise",
+    expertiseSubtitle: "Web Application Development",
     expertise: [
       {
         group: "Frontend",
@@ -101,7 +98,7 @@ export const en: Dictionary = {
         group: "Development",
         items: [
           "AI-Driven Development",
-          "Spec-Driven Development",
+          "Spec‑Driven Development",
           "Contract-First Approach",
           "Test-Driven Development",
           "Git",
