@@ -4,7 +4,6 @@ description: "Personal site: about, blog, portfolio. Fully static, no analytics 
 pubDate: 2026-05-18
 stack: ["Astro", "TypeScript", "Tailwind CSS", "Nginx"]
 liveUrl: "https://alexanderlapygin.com/"
-repoUrl: "https://github.com/aiaiai-copilot/alexanderlapygin.com"
 features:
   - "Fully static (Astro SSG, no client-side framework runtime)"
   - "Bilingual content (RU/EN) via content collections and Zod schemas"
